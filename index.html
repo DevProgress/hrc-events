@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <!-- Link to mapzen.js script and stylesheets: -->
+    <link rel="stylesheet" href="https://mapzen.com/js/mapzen.css">
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        font-family: Helvetica, sans-serif;
+      }
+      #map, #events{
+        width: 50%;
+        height: 100%;
+        float: right;
+      }
+      #map {
+        position: fixed;
+        left: 0;
+      }
+      #radius {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 1;
+        background: white;
+        padding: 5px 10px;
+      }
+      h2 {
+        text-align: center;
+      }
+      .event {
+        padding: 10px 20px;
+        margin: 10px;
+      }
+      .event:nth-child(odd) {
+        background: whitesmoke;
+      }
+      .event .location {
+        font-style: italic;
+      }
+      .event .description {
+        font-size: 14px;
+      }
+    </style>
+    <script src="https://mapzen.com/js/mapzen.min.js"></script>
+    <script src="./d3.v3.min.js"></script>
+  </head>
+  <body>
+    <div id="map">
+      <div id="radius">
+        Show me events within:
+        <select id="radius-select">
+          <option value="5">5 Miles</option>
+          <option value="10" selected>10 Miles</option>
+          <option value="50">50 Miles</option>
+          <option value="100">100 Miles</option>
+          <option value="250">250 Miles</option>
+        </select>
+      </div>
+    </div>
+    <div id="events">
+      <h2>Events Near You:</h2>
+    </div>
+    <script>
+      var map = L.Mapzen.map('map', {
+        scrollWheelZoom : false
+      });
+      map.fitBounds([[48,-123], [28,-70]]);
+
+      var geocoder = L.Mapzen.geocoder('search-Ff4Gs8o');
+      geocoder.addTo(map);
+
+      var currentLocation;
+      var currentDate = new Date();//$.now().toISOString();
+      var earliestTime = encodeURIComponent(currentDate.toISOString());
+
+      var iso = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ");
+      var dateFormat = d3.time.format("%m/%d %I:%M %p");
+
+      function getRadius() {
+        var sel = document.getElementById('radius-select');
+        return sel.options[sel.selectedIndex].value;
+      }
+
+      d3.select("#radius-select").on("change",function(){
+        doSearch();
+      });
+
+      function addMarkers(features) {
+        //layer.bindPopup("<a href='"+feature.properties.href+"'>"+feature.properties.display_name+"</a>");
+        features.forEach(function(f){
+          L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude)).addTo(map);
+        })
+        // var label = L.marker(layer.getBounds().getSouthWest(), {
+        //   icon: L.divIcon({
+        //     className: 'label',
+        //   })
+        // }).addTo(map);
+      }
+
+      geocoder.on('select', function (e) {
+        currentLocation = e;
+        doSearch();
+      });
+
+      function doSearch(){
+        d3.json("https://www.hillaryclinton.com/api/events/events?lat="+currentLocation.latlng.lat+"&lng="+currentLocation.latlng.lng+"&radius="+getRadius()+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=50&onepage=1&_=1457303591599", function(error, json){
+
+          addMarkers(json.events);
+
+          json.events.sort(function(a,b){ console.log(a); return iso.parse(a.startDate) - iso.parse(b.startDate); });
+          var events = json.events.filter(function(a){ return a.guestsCanInviteOthers; });
+
+          var events = d3.select("#events").selectAll(".event").data(events);
+          var entering = events.enter().append("div").attr("class","event");
+          entering.append("h3");
+          entering.append("p").attr("class","time");
+          entering.append("p").attr("class","location");
+          entering.append("p").attr("class","description");
+          events.exit().remove();
+          events.select("h3").text(function(d){ return d.name; });
+          events.select(".time").text(function(d){ 
+            return dateFormat(iso.parse(d.startDate)) + " - " + (d.endDate ? dateFormat(iso.parse(d.endDate)) : ""); 
+          });
+          events.select(".location").text(function(d){
+            var p = d.locations[0];
+            return (p.name ? p.name + ", " : "") + p.address1 + " " + p.address2 + " " + p.city + " " + p.postalCode;
+          });
+          events.select(".description").text(function(d){ return d.description; });
+        });
+      }
+
+    </script>
+  </body>
+</html>
