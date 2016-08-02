@@ -3,7 +3,7 @@
 ### To Get Started
 Clone repo, run `python -m SimpleHTTPServer 8888` and go to `http://127.0.0.1:8888/`
 
-![initial map](https://www.dropbox.com/s/dzv3q8c0lvc5qmx/Screenshot%202016-08-01%2023.38.45.png)
+![initial map](http://i.imgur.com/YLmUCM5.png)
 
 ### Done
 The initial goal was to reach feature parity with [HillaryEventsMap](https://github.com/DevProgress/HillaryEventsMap), however ugly it may look.
