@@ -30,6 +30,9 @@
         background: white;
         padding: 5px 10px;
       }
+      .disabled {
+        opacity: .5;
+      }
       h2 {
         text-align: center;
       }
@@ -53,14 +56,19 @@
   <body>
     <div id="map">
       <div id="radius">
-        Show me events within:
-        <select id="radius-select">
-          <option value="5">5 Miles</option>
-          <option value="10" selected>10 Miles</option>
-          <option value="50">50 Miles</option>
-          <option value="100">100 Miles</option>
-          <option value="250">250 Miles</option>
-        </select>
+        <div class="radius-wrapper">
+          Show me events within:
+          <select id="radius-select">
+            <option value="5">5 Miles</option>
+            <option value="10" selected>10 Miles</option>
+            <option value="50">50 Miles</option>
+            <option value="100">100 Miles</option>
+            <option value="250">250 Miles</option>
+          </select>
+        </div>
+        <div>
+          <input type="checkbox" id="move-update">Update map when moved
+        </div>
       </div>
     </div>
     <div id="events">
@@ -72,7 +80,7 @@
       });
       map.fitBounds([[48,-123], [28,-70]]);
 
-      var geocoder = L.Mapzen.geocoder('search-Ff4Gs8o');
+      var geocoder = L.Mapzen.geocoder('search-Ff4Gs8o', { focus : false });
       geocoder.addTo(map);
 
       var currentLocation;
@@ -80,7 +88,9 @@
       var earliestTime = encodeURIComponent(currentDate.toISOString());
 
       var iso = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ");
-      var dateFormat = d3.time.format("%m/%d %I:%M %p");
+      var wholeDate = d3.time.format("%m/%d %I:%M %p"),
+        dateFormat = d3.time.format("%m/%d"),
+        hourFormat = d3.time.format("%I:%M%p");
 
       function getRadius() {
         var sel = document.getElementById('radius-select');
@@ -88,14 +98,36 @@
       }
 
       d3.select("#radius-select").on("change",function(){
-        doSearch();
+        doSearch(currentLocation[0],currentLocation[1], getRadius());
       });
+      d3.select("#move-update").on("change",function(){
+        d3.select(".radius-wrapper")
+          .classed("disabled",document.getElementById('move-update').checked);
+      });
+
+      map.on("moveend",function(){
+        if (!document.getElementById('move-update').checked) return;
+        var meters = map.getBounds().getNorthEast().distanceTo(map.getBounds().getSouthWest()),
+          miles = meters*0.000621371,
+          center = map.getCenter();
+        currentLocation = [center.lat, center.lng];
+        doSearch(center.lat, center.lng, miles/2);
+      });
+
+      var markers = [];
 
       function addMarkers(features) {
         //layer.bindPopup("<a href='"+feature.properties.href+"'>"+feature.properties.display_name+"</a>");
+        markers = [];
         features.forEach(function(f){
-          L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude)).addTo(map);
-        })
+          var marker = L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude));
+          markers.push(marker);
+          marker.addTo(map);
+        });
+
+        if (document.getElementById('move-update').checked) return;
+        var group = new L.featureGroup(markers);
+          map.fitBounds(group.getBounds());
         // var label = L.marker(layer.getBounds().getSouthWest(), {
         //   icon: L.divIcon({
         //     className: 'label',
@@ -104,16 +136,20 @@
       }
 
       geocoder.on('select', function (e) {
-        currentLocation = e;
-        doSearch();
+        currentLocation = [e.latlng.lat, e.latlng.lng];
+        doSearch(e.latlng.lat, e.latlng.lng, getRadius());
       });
 
-      function doSearch(){
-        d3.json("https://www.hillaryclinton.com/api/events/events?lat="+currentLocation.latlng.lat+"&lng="+currentLocation.latlng.lng+"&radius="+getRadius()+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=50&onepage=1&_=1457303591599", function(error, json){
+      function doSearch(lat, lng, radius){
+        d3.json("https://www.hillaryclinton.com/api/events/events?lat="+lat+"&lng="+lng+"&radius="+radius+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=50&onepage=1&_=1457303591599", function(error, json){
 
+          markers.forEach(function(m){
+            map.removeLayer(m);
+          });
           addMarkers(json.events);
 
-          json.events.sort(function(a,b){ console.log(a); return iso.parse(a.startDate) - iso.parse(b.startDate); });
+
+          json.events.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
           var events = json.events.filter(function(a){ return a.guestsCanInviteOthers; });
 
           var events = d3.select("#events").selectAll(".event").data(events);
@@ -124,8 +160,13 @@
           entering.append("p").attr("class","description");
           events.exit().remove();
           events.select("h3").text(function(d){ return d.name; });
-          events.select(".time").text(function(d){ 
-            return dateFormat(iso.parse(d.startDate)) + " - " + (d.endDate ? dateFormat(iso.parse(d.endDate)) : ""); 
+          events.select(".time").text(function(d){
+            var start = iso.parse(d.startDate),
+              end = iso.parse(d.endDate);
+            if (end && dateFormat(start) == dateFormat(end))
+              return dateFormat(start) + ", " + hourFormat(start) + " - " + hourFormat(end);
+            else
+              return wholeDate(start) + (end ?  (" - " + wholeDate(end)) : ""); 
           });
           events.select(".location").text(function(d){
             var p = d.locations[0];
