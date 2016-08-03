@@ -125,7 +125,7 @@ var eventsMap = function() {
     doSuggestion : function(query) {
       if (xhr) xhr.abort();
       xhr = d3.json("https://search.mapzen.com/v1/autocomplete?text="+query+"&sources=wof&api_key=search-Ff4Gs8o", function(error, json) {
-        if (json.length)
+        if (json && json.length)
           eventsApp.showSuggestions(json.features);
         else 
           d3.json("https://search.mapzen.com/v1/autocomplete?text="+query+"&api_key=search-Ff4Gs8o", function(err, results) {
@@ -152,18 +152,23 @@ var eventsMap = function() {
       d3.selectAll(".suggestion").remove();
     },
     onSubmit: function(query) {
-      d3.json("https://search.mapzen.com/v1/search?text="+query+"&boundary.country=USA&api_key=search-Ff4Gs8o", function(error, json) {
-        eventsApp.showSuggestions([]);
-        var selected = json.features[0];
-        if (selected.bbox) {
-          bbox = selected.bbox;
-          map.fitBounds([[bbox[1],bbox[0]],[bbox[3], bbox[2]]]);
-        } else {
-          map.setView(selected.geometry.coordinates);
-        }
-        searchedLocation = [selected.geometry.coordinates[1], selected.geometry.coordinates[0]];
+      d3.selectAll(".suggestion").remove();
+      if (Number(query) && query.length == 5) { // try to identify zip codes
+        searchedLocation = zip_to_lat[query];
+        map.setView(searchedLocation);
         eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
-      });
+      } else
+        d3.json("https://search.mapzen.com/v1/search?text="+query+"&boundary.country=USA&api_key=search-Ff4Gs8o", function(error, json) {
+          var selected = json.features[0];
+          if (selected.bbox) {
+            bbox = selected.bbox;
+            map.fitBounds([[bbox[1],bbox[0]],[bbox[3], bbox[2]]]);
+          } else {
+            map.setView(selected.geometry.coordinates);
+          }
+          searchedLocation = [selected.geometry.coordinates[1], selected.geometry.coordinates[0]];
+          eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
+        });
     },
     doEventSearch : function(lat, lng, radius) {
       d3.json("https://www.hillaryclinton.com/api/events/events?lat="+lat+"&lng="+lng+"&radius="+radius+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=50&onepage=1&_=1457303591599", function(error, json){
