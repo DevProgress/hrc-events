@@ -5,64 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <!-- Link to mapzen.js script and stylesheets: -->
     <link rel="stylesheet" href="https://mapzen.com/js/mapzen.css">
-    <style>
-      html, body {
-        width: 100%;
-        height: 100%;
-        padding: 0;
-        margin: 0;
-        font-family: Helvetica, sans-serif;
-      }
-      #map, #events{
-        width: 50%;
-        height: 100%;
-        float: right;
-      }
-      #map {
-        position: fixed;
-        left: 0;
-        border-right: 1px solid black;
-      }
-      #radius {
-        position: absolute;
-        top: 0;
-        right: 0;
-        z-index: 1;
-        background: white;
-        padding: 5px 10px;
-      }
-      .disabled {
-        opacity: .5;
-      }
-      h2 {
-        text-align: center;
-      }
-      .event {
-        padding: 10px 20px;
-        margin: 10px;
-      }
-      .event:nth-child(odd) {
-        background: whitesmoke;
-      }
-      .event .location {
-        font-style: italic;
-      }
-      .event .description {
-        font-size: 14px;
-      }
-      #events {
-        padding: 20px;
-        box-sizing: border-box;
-      }
-      #events .state {
-        display: none;
-      }
-      #events.start .start-wrapper,
-      #events.event .event-wrapper,
-      #events.error .error-wrapper {
-        display: block;
-      }
-    </style>
+    <link rel="stylesheet" href="./style.css">
     <script src="https://mapzen.com/js/mapzen.min.js"></script>
     <script src="./d3.v3.min.js"></script>
   </head>
@@ -142,22 +85,18 @@
       var markers = [];
 
       function addMarkers(features) {
-        //layer.bindPopup("<a href='"+feature.properties.href+"'>"+feature.properties.display_name+"</a>");
         markers = [];
         features.forEach(function(f){
           var marker = L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude));
+          marker.bindPopup("<h2>"+f.name+"</h2><p>"+f.description+"</p>");
           markers.push(marker);
           marker.addTo(map);
         });
 
+        // zoom to fit markers if the "update map button" is unchecked
         if (document.getElementById('move-update').checked) return;
         var group = new L.featureGroup(markers);
           map.fitBounds(group.getBounds());
-        // var label = L.marker(layer.getBounds().getSouthWest(), {
-        //   icon: L.divIcon({
-        //     className: 'label',
-        //   })
-        // }).addTo(map);
       }
 
       geocoder.on('select', function (e) {
