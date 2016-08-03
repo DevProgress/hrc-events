@@ -54,5 +54,12 @@
       </div>
     </div>
     <script src="js/event-map.js"></script>
+    <script type="text/javascript">
+      var e = eventsMap();
+      e.init();
+      
+      if (document.getElementById("search-input").value.length)
+        e.onSubmit(document.getElementById("search-input").value);
+    </script>
   </body>
 </html>

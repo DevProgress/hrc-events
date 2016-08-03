@@ -70,7 +70,9 @@ var eventsMap = function() {
           "<h2>"+f.name+"</h2><p>"
           +eventsApp.formatDate(f.startDate, f.endDate)
           +"</p><p class='location'>"+eventsApp.formatLocation(f.locations[0])
-          +"</p><p class='description'>"+f.description+"</p>");
+          +"</p><p class='description'>"+f.description
+          +"</p><p class='rsvp'><a href='https://www.hillaryclinton.com/events/view/'"+f.lookupId+">rsvp</a></p>"
+        );
         markers.push(marker);
         marker.addTo(map);
       });
@@ -178,12 +180,14 @@ var eventsMap = function() {
 
         var events = d3.select(".event-list").selectAll(".list-event").data(events);
         var entering = events.enter().append("div").attr("class","list-event");
-        entering.append("h3");
+        var enterTitle = entering.append("h3");
+        enterTitle.append("span");
+        enterTitle.append("a").attr("class","rsvp").text("rsvp");
         entering.append("p").attr("class","time");
         entering.append("p").attr("class","location");
         entering.append("p").attr("class","description");
         events.exit().remove();
-        events.select("h3").text(function(d){ return d.name; });
+        events.select("h3 span").text(function(d){ return d.name; });
         events.select(".time").html(function(d){
           return eventsApp.formatDate(d.startDate, d.endDate);
         });
@@ -191,9 +195,9 @@ var eventsMap = function() {
           return eventsApp.formatLocation(d.locations[0]);
         });
         events.select(".description").text(function(d){ return d.description; });
+        events.select(".rsvp").attr("href",function(d){ return "https://www.hillaryclinton.com/events/view/"+d.lookupId; });
       });
     }
   };
   return eventsApp;
 }
-eventsMap().init();

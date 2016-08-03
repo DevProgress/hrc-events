@@ -88,6 +88,16 @@ html, body {
   width: 10px;
   text-align: center;
 }
+.leaflet-popup-content .rsvp {
+  text-align: center;
+  height: 20px;
+  width: 100%;
+  margin-top: 15px;
+}
+.leaflet-popup-content .rsvp a {
+  font-weight: bold;
+  float: none !important;
+}
 
 /*********** searchbox styles ***********/
 
@@ -183,6 +193,21 @@ html, body {
 }
 .list-event:nth-child(odd) {
   background: whitesmoke;
+}
+.list-event .rsvp,
+.leaflet-popup-content .rsvp a {
+  float: right;
+  color: rgb(192,23,38);
+  border: 1px solid rgb(192,23,38);
+  text-transform: uppercase;
+  text-decoration: none;
+  font-size: 12px;
+  padding: 2px 10px;
+  background: rgba(192,23,38,.1);
+}
+.list-event .rsvp:hover,
+.leaflet-popup-content .rsvp a:hover {
+  background: rgba(192,23,38,.2); 
 }
 .list-event .location {
   font-style: italic;
