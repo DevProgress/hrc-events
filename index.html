@@ -21,6 +21,7 @@
       #map {
         position: fixed;
         left: 0;
+        border-right: 1px solid black;
       }
       #radius {
         position: absolute;
@@ -49,6 +50,18 @@
       .event .description {
         font-size: 14px;
       }
+      #events {
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      #events .state {
+        display: none;
+      }
+      #events.start .start-wrapper,
+      #events.event .event-wrapper,
+      #events.error .error-wrapper {
+        display: block;
+      }
     </style>
     <script src="https://mapzen.com/js/mapzen.min.js"></script>
     <script src="./d3.v3.min.js"></script>
@@ -71,12 +84,24 @@
         </div>
       </div>
     </div>
-    <div id="events">
-      <h2>Events Near You:</h2>
+    <div id="events" class="start">
+      <div class="start-wrapper state">
+        <h2>Hi, welcome to the HRC event map!</h2>
+        <p>Get started by searching for your location on the map, and matching events will show up here.</p>
+      </div>
+      <div class="event-wrapper state">
+        <h2>Events Near You:</h2>
+        <div class="event-list"></div>
+      </div>
+      <div class="error-wrapper state">
+        <h2>Aw, snap</h2>
+        <p>It looks there are no events in the area you've selected. Try a wider search, or a different area?</p>
+      </div>
     </div>
     <script>
       var map = L.Mapzen.map('map', {
-        scrollWheelZoom : false
+        scrollWheelZoom : false,
+        scene : L.Mapzen.HouseStyles.Refill
       });
       map.fitBounds([[48,-123], [28,-70]]);
 
@@ -148,11 +173,12 @@
           });
           addMarkers(json.events);
 
+          d3.select("#events").attr("class",json.events.length ? "event" : "error");
 
           json.events.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
           var events = json.events.filter(function(a){ return a.guestsCanInviteOthers; });
 
-          var events = d3.select("#events").selectAll(".event").data(events);
+          var events = d3.select(".event-list").selectAll(".event").data(events);
           var entering = events.enter().append("div").attr("class","event");
           entering.append("h3");
           entering.append("p").attr("class","time");
