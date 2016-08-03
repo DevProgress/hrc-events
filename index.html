@@ -19,10 +19,12 @@
       <div id="searchbox">
         <div class="search-row">
           <label>Search for a city, neighborhood, or address:</label>
-          <input type="text">
+          <input type="text" id="search-input" placeholder="example: San Francisco">
+          <i class="fa fa-times" aria-hidden="true">X</i>
           <button>Submit</button>
+          <div class="autocomplete"></div>
         </div>
-        <div class="search-row">
+        <div class="search-row radius-wrapper">
           <label>Show me events within:</label>
           <select id="radius-select">
             <option value="5">5 Miles</option>

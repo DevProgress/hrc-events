@@ -1,6 +1,8 @@
 var eventsMap = function() {
   var map,
     markers = [],
+    keyIndex = -1,
+    xhr,
     searchedLocation,
     currentDate = new Date(),
     earliestTime = encodeURIComponent(currentDate.toISOString());
@@ -27,16 +29,23 @@ var eventsMap = function() {
         var meters = map.getBounds().getNorthEast().distanceTo(map.getBounds().getSouthWest()),
           miles = meters*0.000621371,
           center = map.getCenter();
-        currentLocation = [center.lat, center.lng];
-        eventsApp.doSearch(center.lat, center.lng, miles/2);
+        searchedLocation = [center.lat, center.lng];
+        eventsApp.doEventSearch(center.lat, center.lng, miles/2);
       });
-
-      var geocoder = L.Mapzen.geocoder('search-Ff4Gs8o', { focus : false });
-      geocoder.addTo(map);
-
-      geocoder.on('select', function (e) {
-        currentLocation = [e.latlng.lat, e.latlng.lng];
-        eventsApp.doSearch(e.latlng.lat, e.latlng.lng, eventsApp.getRadius());
+    },
+    setUpEventHandlers : function() {
+      d3.select("#radius-select").on("change",function(){
+        eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
+      });
+      d3.select("#move-update").on("change",function(){
+        d3.select(".radius-wrapper")
+          .classed("disabled",document.getElementById('move-update').checked);
+      });
+      d3.select("#search-input").on("keyup",function(){
+        eventsApp.processKeyup(event);
+      });
+      d3.select(".fa-times").on("click",function(){
+        eventsApp.clearSearchBox();
       });
     },
     addMarkers : function(features) {
@@ -53,15 +62,6 @@ var eventsMap = function() {
       var group = new L.featureGroup(markers);
         map.fitBounds(group.getBounds());
     },
-    setUpEventHandlers : function() {
-      d3.select("#radius-select").on("change",function(){
-        eventsApp.doSearch(currentLocation[0],currentLocation[1], eventsApp.getRadius());
-      });
-      d3.select("#move-update").on("change",function(){
-        d3.select(".radius-wrapper")
-          .classed("disabled",document.getElementById('move-update').checked);
-      });
-    },
     getRadius : function() {
       var sel = document.getElementById('radius-select');
       return sel.options[sel.selectedIndex].value;
@@ -74,7 +74,90 @@ var eventsMap = function() {
       else
         return wholeDate(start) + (end ?  (" - " + wholeDate(end)) : ""); 
     },
-    doSearch : function(lat, lng, radius) {
+    processKeyup : function(event) {
+      var inputDiv = document.getElementById("search-input");
+      var val = inputDiv.value;
+
+      d3.select(".fa-times").style("display","inline-block");
+
+      if (event.keyCode == 40) { //arrow down
+        keyIndex = Math.min(keyIndex+1, d3.selectAll(".suggestion")[0].length-1);
+        eventsApp.selectSuggestion();
+
+      } else if (event.keyCode == 38) { //arrow up
+        keyIndex = Math.max(keyIndex-1, 0);
+        eventsApp.selectSuggestion();
+
+      } else if (event.keyCode == 13) { //enter
+        // if there are autocomplete suggestions and up/down keys were unused
+        // if (d3.selectAll(".hit")[0].length && keyIndex == -1)
+        //   d3.select(".hit").each(function(d){ m.searchOnSuggestion(d); });
+        // else
+          eventsApp.onSubmit(val);
+
+      } else if (event.keyCode != 8 && (event.keyCode < 48 || event.keyCode > 90)) {
+        // restrict autocomplete to 0-9,a-z character input, excluding delete
+        return;
+
+      } else {
+        // general case of typing to filter list and get autocomplete suggestions
+        keyIndex = -1;
+        eventsApp.doSuggestion(val);
+      }
+    },
+    selectSuggestion : function() {
+      // for handling keyboard input on the autocomplete list
+      var currentList = d3.selectAll(".suggestion");
+      currentList.each(function(d, i){ 
+        if (i == keyIndex) {
+          document.getElementById("search-input").value = d.name ? d.name : d.properties.label;
+        }
+      }).classed("selected",function(d,i){ return i == keyIndex; });
+    },
+    doSuggestion : function(query) {
+      if (xhr) xhr.abort();
+      xhr = d3.json("https://search.mapzen.com/v1/autocomplete?text="+query+"&sources=wof&api_key=search-Ff4Gs8o", function(error, json) {
+        if (json.length)
+          eventsApp.showSuggestions(json.features);
+        else 
+          d3.json("https://search.mapzen.com/v1/autocomplete?text="+query+"&layers=neighbourhood,locality,borough,localadmin,county,macrocounty,region,macroregion,country&api_key=search-Ff4Gs8o", function(err, results) {
+            eventsApp.showSuggestions(results.features);
+          });
+      });
+    },
+    showSuggestions : function(data) {
+      var suggestion = d3.select(".autocomplete")
+        .selectAll(".suggestion").data(data);
+      suggestion.enter().append("div").attr("class","suggestion");
+      suggestion.exit().remove();
+      suggestion.text(function(d){ return d.properties.label; })
+        .on("click",function(d){
+          var name = d.name ? d.name : d.properties.label;
+          document.getElementById("search-input").value = name;
+          eventsApp.onSubmit(name);
+        });
+    },
+    clearSearchBox : function() {
+      // triggered by "x" click or an empty search box
+      document.getElementById("search-input").value = "";
+      d3.select(".fa-times").style("display","none");
+      d3.selectAll(".suggestion").remove();
+    },
+    onSubmit: function(query) {
+      d3.json("https://search.mapzen.com/v1/search?text="+query+"&boundary.country=USA&api_key=search-Ff4Gs8o", function(error, json) {
+        eventsApp.showSuggestions([]);
+        var selected = json.features[0];
+        if (selected.bbox) {
+          bbox = selected.bbox;
+          map.fitBounds([[bbox[1],bbox[0]],[bbox[3], bbox[2]]]);
+        } else {
+          map.setView(selected.geometry.coordinates);
+        }
+        searchedLocation = [selected.geometry.coordinates[1], selected.geometry.coordinates[0]];
+        eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
+      });
+    },
+    doEventSearch : function(lat, lng, radius) {
       d3.json("https://www.hillaryclinton.com/api/events/events?lat="+lat+"&lng="+lng+"&radius="+radius+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=50&onepage=1&_=1457303591599", function(error, json){
 
         markers.forEach(function(m){

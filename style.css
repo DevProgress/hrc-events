@@ -45,8 +45,19 @@ h2 {
 }
 #searchbox input[type="text"] {
   width: 60%;
-  font-size: 18px;
-  padding: 3px 5px;
+  font-size: 16px;
+  padding: 5px 5px 4px;
+}
+#searchbox .fa-times {
+  display: none;
+  font-style: normal;
+  position: absolute;
+  margin: 7px 0 0 -21px;
+  color: #808080;
+  cursor: pointer;
+}
+#searchbox .fa-times:hover {
+  color: #000;
 }
 #searchbox button {
   -webkit-appearance: none;
@@ -98,4 +109,26 @@ h2 {
 #events.event .event-wrapper,
 #events.error .error-wrapper {
   display: block;
+}
+.autocomplete {
+  position: absolute;
+  width: 27.5%;
+  background: white;
+}
+.suggestion {
+  border-bottom: 1px solid #ddd;
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  padding: 1px 0 1px 15px;
+  color: #808080;
+  cursor: pointer;
+  font-size: 14px;
+}
+.suggestion.selected {
+  color: #000;
+  background: #ddd;
+}
+.suggestion:hover {
+  color: #000;
+  background: #eee;
 }
