@@ -120,7 +120,7 @@ var eventsMap = function() {
         if (json.length)
           eventsApp.showSuggestions(json.features);
         else 
-          d3.json("https://search.mapzen.com/v1/autocomplete?text="+query+"&layers=neighbourhood,locality,borough,localadmin,county,macrocounty,region,macroregion,country&api_key=search-Ff4Gs8o", function(err, results) {
+          d3.json("https://search.mapzen.com/v1/autocomplete?text="+query+"&api_key=search-Ff4Gs8o", function(err, results) {
             eventsApp.showSuggestions(results.features);
           });
       });
