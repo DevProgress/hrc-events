@@ -66,7 +66,6 @@ var eventsMap = function() {
       markers = [];
       features.forEach(function(f){
         var marker = L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude));
-        console.log(f);
         marker.bindPopup(
           "<h2>"+f.name+"</h2><p>"
           +eventsApp.formatDate(f.startDate, f.endDate)
@@ -189,7 +188,6 @@ var eventsMap = function() {
           return eventsApp.formatDate(d.startDate, d.endDate);
         });
         events.select(".location").html(function(d){
-          var p = d.locations[0];
           return eventsApp.formatLocation(d.locations[0]);
         });
         events.select(".description").text(function(d){ return d.description; });

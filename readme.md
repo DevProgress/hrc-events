@@ -6,11 +6,7 @@
 ### To Get Started
 Clone repo, run `python -m SimpleHTTPServer 8888` and go to `http://127.0.0.1:8888/`
 
-![initial state](http://i.imgur.com/Wz5MUX5.png)
-![on search](http://i.imgur.com/pPBciGG.png)
+![on search](http://imgur.com/zvd4Qbj.png)
 
-### To Do
-
-1. Visual design, obv
-2. List/marker interactions. Clicking on a marker should highlight the event in the list, and vice versa.
-3. How to make the events more accessible? They are sorted by date right now, and include the address, but there's no info in the data to a permalink on HRC's site, or anything. Not sure what we can do here.
+### The Big Question
+How do we make it easier for people to attend these events? Should it create a gCal/iCal/Outlook event? What else can we do to make it easy for people to use this?
