@@ -18,7 +18,6 @@ html, body {
   vertical-align: middle;
   margin: 0;
   font-weight: normal;
-  text-align: center;
 }
 .hrc {
   background: url(./hillary-logo.svg);
@@ -78,6 +77,16 @@ html, body {
 .disabled {
   opacity: .5;
   pointer-events: none;
+}
+
+.leaflet-popup-content p {
+  margin: 10px 0;
+}
+.leaflet-popup-content .fa-map-marker,
+.leaflet-popup-content .fa-calendar-o {
+  margin-right: 7px;
+  width: 10px;
+  text-align: center;
 }
 
 /*********** searchbox styles ***********/
@@ -178,6 +187,14 @@ html, body {
 .list-event .location {
   font-style: italic;
 }
+.list-event .location .fa-map-marker,
+.list-event .time .fa-calendar-o {
+  margin-right: 10px;
+  float: left;
+  width: 15px;
+  text-align: center;
+}
 .list-event .description {
   font-size: 14px;
+  color: #555;
 }

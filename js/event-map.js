@@ -48,11 +48,30 @@ var eventsMap = function() {
         eventsApp.clearSearchBox();
       });
     },
+    formatDate : function(startDate, endDate) {
+      var start = iso.parse(startDate),
+        end = endDate ? iso.parse(endDate) : null;
+      if (end && dateFormat(start) == dateFormat(end))
+        var dateString = dateFormat(start) + ", " + hourFormat(start) + " - " + hourFormat(end);
+      else
+        var dateString = wholeDate(start) + (end ?  (" - " + wholeDate(end)) : ""); 
+      return '<i class="fa fa-calendar-o" aria-hidden="true"></i>' + dateString;
+    },
+    formatLocation: function(p) {
+      return '<i class="fa fa-map-marker" aria-hidden="true"></i>' 
+        + (p.name ? p.name + ", " : "") + p.address1 + " " + p.address2 
+        + " " + p.city + " " + p.postalCode;
+    },
     addMarkers : function(features) {
       markers = [];
       features.forEach(function(f){
         var marker = L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude));
-        marker.bindPopup("<h2>"+f.name+"</h2><p>"+f.description+"</p>");
+        console.log(f);
+        marker.bindPopup(
+          "<h2>"+f.name+"</h2><p>"
+          +eventsApp.formatDate(f.startDate, f.endDate)
+          +"</p><p class='location'>"+eventsApp.formatLocation(f.locations[0])
+          +"</p><p class='description'>"+f.description+"</p>");
         markers.push(marker);
         marker.addTo(map);
       });
@@ -65,14 +84,6 @@ var eventsMap = function() {
     getRadius : function() {
       var sel = document.getElementById('radius-select');
       return sel.options[sel.selectedIndex].value;
-    },
-    formatDate : function(startDate, endDate) {
-      var start = iso.parse(startDate),
-        end = iso.parse(endDate);
-      if (end && dateFormat(start) == dateFormat(end))
-        return dateFormat(start) + ", " + hourFormat(start) + " - " + hourFormat(end);
-      else
-        return wholeDate(start) + (end ?  (" - " + wholeDate(end)) : ""); 
     },
     processKeyup : function(event) {
       var inputDiv = document.getElementById("search-input");
@@ -174,12 +185,12 @@ var eventsMap = function() {
         entering.append("p").attr("class","description");
         events.exit().remove();
         events.select("h3").text(function(d){ return d.name; });
-        events.select(".time").text(function(d){
+        events.select(".time").html(function(d){
           return eventsApp.formatDate(d.startDate, d.endDate);
         });
-        events.select(".location").text(function(d){
+        events.select(".location").html(function(d){
           var p = d.locations[0];
-          return (p.name ? p.name + ", " : "") + p.address1 + " " + p.address2 + " " + p.city + " " + p.postalCode;
+          return eventsApp.formatLocation(d.locations[0]);
         });
         events.select(".description").text(function(d){ return d.description; });
       });
