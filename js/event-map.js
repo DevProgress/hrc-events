@@ -89,11 +89,7 @@ var eventsMap = function() {
         eventsApp.selectSuggestion();
 
       } else if (event.keyCode == 13) { //enter
-        // if there are autocomplete suggestions and up/down keys were unused
-        // if (d3.selectAll(".hit")[0].length && keyIndex == -1)
-        //   d3.select(".hit").each(function(d){ m.searchOnSuggestion(d); });
-        // else
-          eventsApp.onSubmit(val);
+        eventsApp.onSubmit(val);
 
       } else if (event.keyCode != 8 && (event.keyCode < 48 || event.keyCode > 90)) {
         // restrict autocomplete to 0-9,a-z character input, excluding delete

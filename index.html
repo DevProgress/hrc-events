@@ -5,22 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <!-- Link to mapzen.js script and stylesheets: -->
     <link rel="stylesheet" href="https://mapzen.com/js/mapzen.css">
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
     <script src="https://mapzen.com/js/mapzen.min.js"></script>
-    <script src="./d3.v3.min.js"></script>
+    <script src="js/d3.v3.min.js"></script>
   </head>
   <body>
     <div id="events" class="start">
+      <div class="header">
+        <h1><span class="hrc"></span>Campaign Event Map</h1>
+      </div>
       <div class="start-wrapper state">
-        <h2>Welcome to the HRC event map!</h2>
-        <p>Get started by searching for your location on the map, and matching events will show up here.</p>
+        <p>Welcome to the HRC Events Map! Get started by searching for your location, and we will show you events in your area leading up to the election.</p>
       </div>
       
       <div id="searchbox">
         <div class="search-row">
           <label>Search for a city, neighborhood, or address:</label>
           <input type="text" id="search-input" placeholder="example: San Francisco">
-          <i class="fa fa-times" aria-hidden="true">X</i>
+          <span class="fa fa-times" aria-hidden="true"></span>
           <button>Submit</button>
           <div class="autocomplete"></div>
         </div>
@@ -50,6 +53,6 @@
         <input type="checkbox" id="move-update">Redo search when map moved
       </div>
     </div>
-    <script src="./event-map.js"></script>
+    <script src="js/event-map.js"></script>
   </body>
 </html>
