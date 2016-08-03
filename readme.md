@@ -9,4 +9,4 @@ Clone repo, run `python -m SimpleHTTPServer 8888` and go to `http://127.0.0.1:88
 ![on search](http://imgur.com/zvd4Qbj.png)
 
 ### The Big Question
-How do we make it easier for people to attend these events? Should it create a gCal/iCal/Outlook event? What else can we do to make it easy for people to use this?
+What else should we add to make it easier for people to find and attend these events?
