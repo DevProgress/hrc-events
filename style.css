@@ -15,7 +15,7 @@ html, body {
   top: 0;
   border-right: 1px solid black;
 }
-#radius {
+#map-search {
   position: absolute;
   top: 0;
   right: 0;
@@ -32,6 +32,47 @@ html, body {
 }
 h2 {
   text-align: center;
+}
+#searchbox {
+  background: whitesmoke;
+  padding: 20px;
+}
+#searchbox .search-row {
+  margin-bottom: 20px;
+}
+#searchbox .search-row:last-child {
+  margin-bottom: 0;
+}
+#searchbox input[type="text"] {
+  width: 60%;
+  font-size: 18px;
+  padding: 3px 5px;
+}
+#searchbox button {
+  -webkit-appearance: none;
+  appearance: none;
+  font-size: 16px;
+  text-transform: uppercase;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background: white;
+  padding: 5px 10px;
+  color: #808080;
+  font-weight: 100;
+}
+#searchbox button:hover {
+  border-color: #000;
+  color: #000;
+}
+#searchbox select {
+  font-size: 18px;
+}
+#searchbox label {
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
 }
 .list-event {
   padding: 10px 20px;

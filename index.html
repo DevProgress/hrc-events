@@ -15,30 +15,37 @@
         <h2>Welcome to the HRC event map!</h2>
         <p>Get started by searching for your location on the map, and matching events will show up here.</p>
       </div>
+      
+      <div id="searchbox">
+        <div class="search-row">
+          <label>Search for a city, neighborhood, or address:</label>
+          <input type="text">
+          <button>Submit</button>
+        </div>
+        <div class="search-row">
+          <label>Show me events within:</label>
+          <select id="radius-select">
+            <option value="5">5 Miles</option>
+            <option value="10" selected>10 Miles</option>
+            <option value="25">25 Miles</option>
+            <option value="50">50 Miles</option>
+          </select>
+        </div>
+      </div>
+
       <div class="event-wrapper state">
         <h2>Events Near You:</h2>
         <div class="event-list"></div>
       </div>
+
       <div class="error-wrapper state">
         <h2>Aw, snap</h2>
         <p>It looks there are no events in the area you've selected. Try a wider search, or a different area?</p>
       </div>
     </div>
     <div id="map">
-      <div id="radius">
-        <div class="radius-wrapper">
-          Show me events within:
-          <select id="radius-select">
-            <option value="5">5 Miles</option>
-            <option value="10" selected>10 Miles</option>
-            <option value="50">50 Miles</option>
-            <option value="100">100 Miles</option>
-            <option value="250">250 Miles</option>
-          </select>
-        </div>
-        <div>
-          <input type="checkbox" id="move-update">Update the search when the map moves
-        </div>
+      <div id="map-search">
+        <input type="checkbox" id="move-update">Redo search when map moved
       </div>
     </div>
     <script src="./event-map.js"></script>
