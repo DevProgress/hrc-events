@@ -8,11 +8,11 @@ html, body {
 #map, #events{
   width: 50%;
   height: 100%;
-  float: right;
 }
 #map {
   position: fixed;
-  left: 0;
+  right: 0;
+  top: 0;
   border-right: 1px solid black;
 }
 #radius {
@@ -33,17 +33,17 @@ html, body {
 h2 {
   text-align: center;
 }
-.event {
+.list-event {
   padding: 10px 20px;
   margin: 10px;
 }
-.event:nth-child(odd) {
+.list-event:nth-child(odd) {
   background: whitesmoke;
 }
-.event .location {
+.list-event .location {
   font-style: italic;
 }
-.event .description {
+.list-event .description {
   font-size: 14px;
 }
 #events {
