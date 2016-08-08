@@ -173,15 +173,18 @@ var eventsMap = function() {
     doEventSearch : function(lat, lng, radius) {
       d3.json("https://www.hillaryclinton.com/api/events/events?lat="+lat+"&lng="+lng+"&radius="+radius+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=50&onepage=1&_=1457303591599", function(error, json){
 
+        // events happening at NYC City Hall have a fake location, are not actually happening there, and should not be shown
+        var eventsToShow = _.reject(json.events, function(event) { return event.locations[0].latitude == "40.7127837" && event.locations[0].longitude == "-74.0059413" } );
+        
         markers.forEach(function(m){
           map.removeLayer(m);
         });
-        eventsApp.addMarkers(json.events);
+        eventsApp.addMarkers(eventsToShow);
 
-        d3.select("#events").attr("class",json.events.length ? "event" : "error");
+        d3.select("#events").attr("class",eventsToShow.length ? "event" : "error");
 
-        json.events.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
-        var events = json.events.filter(function(a){ return a.guestsCanInviteOthers; });
+        eventsToShow.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
+        var events = eventsToShow.filter(function(a){ return a.guestsCanInviteOthers; });
 
         var events = d3.select(".event-list").selectAll(".list-event").data(events);
         var entering = events.enter().append("div").attr("class","list-event");
