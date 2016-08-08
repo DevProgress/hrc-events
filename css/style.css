@@ -41,7 +41,8 @@ html, body {
 }
 #events.start .start-wrapper,
 #events.event .event-wrapper,
-#events.error .error-wrapper {
+#events.error .error-wrapper,
+#events.search-error .search-error-wrapper {
   display: block;
 }
 

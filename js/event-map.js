@@ -159,6 +159,11 @@ var eventsMap = function() {
         eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
       } else
         d3.json("https://search.mapzen.com/v1/search?text="+query+"&boundary.country=USA&api_key=search-Ff4Gs8o", function(error, json) {
+          if (!json.features.length) {
+            d3.select("#events").attr("class","search-error");
+            return;
+          }
+
           var selected = json.features[0];
           if (selected.bbox) {
             bbox = selected.bbox;
