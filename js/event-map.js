@@ -204,6 +204,6 @@ var eventsMap = function() {
       });
     }
   };
-  eventsApp.throttledDoSuggestion = _.throttle(eventsApp.doSuggestion, 1000);
+  eventsApp.throttledDoSuggestion = _.throttle(eventsApp.doSuggestion, 100);
   return eventsApp;
 }
