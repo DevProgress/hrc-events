@@ -204,6 +204,7 @@ var eventsMap = function() {
       });
     }
   };
-  eventsApp.throttledDoSuggestion = _.throttle(eventsApp.doSuggestion, 100);
+    // 100 millisecond throttle was too fast, still got Too Many Requests complaints from mapzen
+  eventsApp.throttledDoSuggestion = _.throttle(eventsApp.doSuggestion, 250);
   return eventsApp;
 }
