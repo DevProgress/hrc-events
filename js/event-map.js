@@ -78,7 +78,7 @@ var eventsMap = function() {
       });
 
       // zoom to fit markers if the "update map button" is unchecked
-      if (document.getElementById('move-update').checked) return;
+      if (document.getElementById('move-update').checked || !markers.length) return;
       var group = new L.featureGroup(markers);
         map.fitBounds(group.getBounds());
     },
@@ -92,7 +92,10 @@ var eventsMap = function() {
 
       d3.select(".fa-times").style("display","inline-block");
 
-      if (event.keyCode == 40) { //arrow down
+      if (!val.length) {
+        eventsApp.clearSearchBox();
+
+      } else if (event.keyCode == 40) { //arrow down
         keyIndex = Math.min(keyIndex+1, d3.selectAll(".suggestion")[0].length-1);
         eventsApp.selectSuggestion();
 
@@ -213,6 +216,6 @@ var eventsMap = function() {
     }
   };
     // 100 millisecond throttle was too fast, still got Too Many Requests complaints from mapzen
-  eventsApp.throttledDoSuggestion = _.throttle(eventsApp.doSuggestion, 250);
+  eventsApp.throttledDoSuggestion = _.throttle(eventsApp.doSuggestion, 200);
   return eventsApp;
 }
