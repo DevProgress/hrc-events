@@ -175,18 +175,19 @@ var eventsMap = function() {
 
         // events happening at NYC City Hall have a fake location, are not actually happening there, and should not be shown
         var eventsToShow = _.reject(json.events, function(event) { return event.locations[0].latitude == "40.7127837" && event.locations[0].longitude == "-74.0059413" } );
+        var eventsCanInvite = eventsToShow.filter(function(a){ return a.guestsCanInviteOthers; });
         
         markers.forEach(function(m){
           map.removeLayer(m);
         });
-        eventsApp.addMarkers(eventsToShow);
+        eventsApp.addMarkers(eventsCanInvite);
 
-        d3.select("#events").attr("class",eventsToShow.length ? "event" : "error");
+        d3.select("#events").attr("class",eventsCanInvite.length ? "event" : "error");
 
-        eventsToShow.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
-        var events = eventsToShow.filter(function(a){ return a.guestsCanInviteOthers; });
+        eventsCanInvite.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
+        
 
-        var events = d3.select(".event-list").selectAll(".list-event").data(events);
+        var events = d3.select(".event-list").selectAll(".list-event").data(eventsCanInvite);
         var entering = events.enter().append("div").attr("class","list-event");
         var enterTitle = entering.append("h3");
         enterTitle.append("span");
