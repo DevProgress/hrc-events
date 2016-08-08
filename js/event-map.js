@@ -110,7 +110,7 @@ var eventsMap = function() {
       } else {
         // general case of typing to filter list and get autocomplete suggestions
         keyIndex = -1;
-        eventsApp.doSuggestion(val);
+        eventsApp.throttledDoSuggestion(val);
       }
     },
     selectSuggestion : function() {
@@ -204,5 +204,6 @@ var eventsMap = function() {
       });
     }
   };
+  eventsApp.throttledDoSuggestion = _.throttle(eventsApp.doSuggestion, 1000);
   return eventsApp;
 }
