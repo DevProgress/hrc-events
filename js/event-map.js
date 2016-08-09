@@ -16,6 +16,7 @@ var eventsMap = function() {
     init : function() {
       this.setUpMap();
       this.setUpEventHandlers();
+      this.tryForAutoLocation();
     },
     setUpMap : function() {
       map = L.Mapzen.map('map', {
@@ -47,6 +48,19 @@ var eventsMap = function() {
       d3.select(".fa-times").on("click",function(){
         eventsApp.clearSearchBox();
       });
+    },
+    tryForAutoLocation : function() {
+      if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+              searchedLocation = [position.coords.latitude, position.coords.longitude];
+              eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius());
+          }, function error(msg) {
+              //do nothing
+          },
+          // if the browser has a cached location thats not more than one hour
+          // old, we'll just use that to make the page go faster.
+          {maximumAge: 1000 * 3600});
+      }
     },
     formatDate : function(startDate, endDate) {
       var start = iso.parse(startDate),
@@ -179,7 +193,10 @@ var eventsMap = function() {
         });
     },
     doEventSearch : function(lat, lng, radius) {
-      d3.json("https://www.hillaryclinton.com/api/events/events?lat="+lat+"&lng="+lng+"&radius="+radius+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=50&onepage=1&_=1457303591599", function(error, json){
+      // shameful hack to work around all the NYC City Hall events;
+      // by retrieving 500 results and ignoring the NYC City Hall ones we get reasonable
+      // behavior for Manhattan users.
+      d3.json("https://www.hillaryclinton.com/api/events/events?lat="+lat+"&lng="+lng+"&radius="+radius+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=500&onepage=1&_=1457303591599", function(error, json){
 
         // events happening at NYC City Hall have a fake location, are not actually happening there, and should not be shown
         var eventsToShow = _.reject(json.events, function(event) { return event.locations[0].latitude == "40.7127837" && event.locations[0].longitude == "-74.0059413" } );
