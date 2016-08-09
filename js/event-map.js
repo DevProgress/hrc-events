@@ -127,13 +127,20 @@ var eventsMap = function() {
     },
     doSuggestion : function(query) {
       if (xhr) xhr.abort();
-      xhr = d3.json("https://search.mapzen.com/v1/autocomplete?text="+query+"&sources=wof&api_key=search-Ff4Gs8o", function(error, json) {
-        if (json && json.length)
-          eventsApp.showSuggestions(json.features);
-        else 
-          d3.json("https://search.mapzen.com/v1/autocomplete?text="+query+"&api_key=search-Ff4Gs8o", function(err, results) {
-            eventsApp.showSuggestions(results.features);
+      xhr = d3.json("https://search.mapzen.com/v1/autocomplete?text="+query+"&api_key=search-Ff4Gs8o", function(err, results) {
+        // filter autocomplete to only show USA results
+        var events = results.features.filter(function(a){ 
+          return a.properties.country_a == "USA"; }); 
+        // add a zip code result at the top
+        if (Number(query) && query.length == 5) {
+          events.unshift({
+            properties : {
+              label : "Zip Code: "+query
+            },
+            name : query
           });
+        }
+        eventsApp.showSuggestions(events);
       });
     },
     showSuggestions : function(data) {
@@ -158,7 +165,11 @@ var eventsMap = function() {
       d3.selectAll(".suggestion").remove();
       if (Number(query) && query.length == 5) { // try to identify zip codes
         searchedLocation = zip_to_lat[query];
-        map.setView(searchedLocation);
+        if (!searchedLocation) {
+          d3.select("#events").attr("class","search-error");
+          return;
+        }
+        map.setView(searchedLocation, 12);
         eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
       } else
         d3.json("https://search.mapzen.com/v1/search?text="+query+"&boundary.country=USA&api_key=search-Ff4Gs8o", function(error, json) {
