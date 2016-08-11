@@ -79,8 +79,9 @@ var eventsMap = function() {
 
       // zoom to fit markers if the "update map button" is unchecked
       if (document.getElementById('move-update').checked || !markers.length) return;
-      var group = new L.featureGroup(markers);
-        map.fitBounds(group.getBounds());
+      var group = new L.featureGroup(markers),
+        bounds = group.getBounds();
+      map.fitBounds(bounds, { maxZoom : 15});
     },
     getRadius : function() {
       var sel = document.getElementById('radius-select');
@@ -169,7 +170,7 @@ var eventsMap = function() {
           d3.select("#events").attr("class","search-error");
           return;
         }
-        map.setView(searchedLocation, 12);
+        //map.setView(searchedLocation, 12);
         eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
       } else
         d3.json("https://search.mapzen.com/v1/search?text="+query+"&boundary.country=USA&api_key=search-Ff4Gs8o", function(error, json) {
