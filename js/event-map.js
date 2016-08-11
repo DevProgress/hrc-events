@@ -79,8 +79,9 @@ var eventsMap = function() {
 
       // zoom to fit markers if the "update map button" is unchecked
       if (document.getElementById('move-update').checked || !markers.length) return;
-      var group = new L.featureGroup(markers);
-        map.fitBounds(group.getBounds());
+      var group = new L.featureGroup(markers),
+        bounds = group.getBounds();
+      map.fitBounds(bounds, { maxZoom : 15});
     },
     getRadius : function() {
       var sel = document.getElementById('radius-select');
