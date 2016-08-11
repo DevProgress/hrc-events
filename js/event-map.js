@@ -222,9 +222,8 @@ var eventsMap = function() {
         d3.select("#events").attr("class",eventsToShow.length ? "event" : "error");
 
         eventsToShow.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
-        var events = eventsToShow.filter(function(a){ return a.guestsCanInviteOthers; });
 
-        var events = d3.select(".event-list").selectAll(".list-event").data(events);
+        var events = d3.select(".event-list").selectAll(".list-event").data(eventsToShow);
         var entering = events.enter().append("div").attr("class","list-event");
         var enterTitle = entering.append("h3");
         enterTitle.append("span");
