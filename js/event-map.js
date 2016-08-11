@@ -193,14 +193,15 @@ var eventsMap = function() {
             return;
           }
 
-          var selected = json.features[0];
+          var selected = json.features[0],
+            searchedLocation = [selected.geometry.coordinates[1], selected.geometry.coordinates[0]];
           if (selected.bbox) {
             bbox = selected.bbox;
             map.fitBounds([[bbox[1],bbox[0]],[bbox[3], bbox[2]]]);
           } else {
-            map.setView(selected.geometry.coordinates);
+            map.setView(searchedLocation, 12);
           }
-          searchedLocation = [selected.geometry.coordinates[1], selected.geometry.coordinates[0]];
+          
           eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
         });
     },
