@@ -42,7 +42,7 @@ var eventsMap = function() {
           .classed("disabled",document.getElementById('move-update').checked);
       });
       d3.select("#search-input").on("keyup",function(){
-        eventsApp.processKeyup(event);
+        eventsApp.processKeyup(d3.event);
       });
       d3.select(".fa-times").on("click",function(){
         eventsApp.clearSearchBox();
