@@ -50,17 +50,17 @@ var eventsMap = function() {
       });
     },
     tryForAutoLocation : function() {
-      if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(function(position) {
-              searchedLocation = [position.coords.latitude, position.coords.longitude];
-              eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius());
-          }, function error(msg) {
-              //do nothing
-          },
-          // if the browser has a cached location thats not more than one hour
-          // old, we'll just use that to make the page go faster.
-          {maximumAge: 1000 * 3600});
-      }
+      if (!navigator.geolocation) return;
+
+      navigator.geolocation.getCurrentPosition(function(position) {
+          searchedLocation = [position.coords.latitude, position.coords.longitude];
+          eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius());
+      }, function error(msg) {
+          //do nothing
+      },
+      // if the browser has a cached location thats not more than one hour
+      // old, we'll just use that to make the page go faster.
+      {maximumAge: 1000 * 3600});
     },
     formatDate : function(startDate, endDate) {
       var start = iso.parse(startDate),
