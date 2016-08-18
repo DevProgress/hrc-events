@@ -142,10 +142,8 @@ var eventsMap = function() {
     },
     doSuggestion : function(query) {
       if (xhr) xhr.abort();
-      xhr = d3.json("https://search.mapzen.com/v1/autocomplete?text="+query+"&api_key=search-Ff4Gs8o", function(err, results) {
-        // filter autocomplete to only show USA results
-        var events = results.features.filter(function(a){ 
-          return a.properties.country_a == "USA"; }); 
+      xhr = d3.json("https://search.mapzen.com/v1/autocomplete?text="+query+"&boundary.country=USA&api_key=search-Ff4Gs8o", function(err, results) {
+        var events = results.features;
         // add a zip code result at the top
         if (Number(query) && query.length == 5) {
           events.unshift({
@@ -244,7 +242,6 @@ var eventsMap = function() {
       });
     }
   };
-    // 100 millisecond throttle was too fast, still got Too Many Requests complaints from mapzen
-  eventsApp.throttledDoSuggestion = _.throttle(eventsApp.doSuggestion, 200);
+  eventsApp.throttledDoSuggestion = _.throttle(eventsApp.doSuggestion, 50);
   return eventsApp;
 }
