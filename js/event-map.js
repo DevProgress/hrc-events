@@ -191,14 +191,15 @@ var eventsMap = function() {
             return;
           }
 
-          var selected = json.features[0];
+          var selected = json.features[0],
+            searchedLocation = [selected.geometry.coordinates[1], selected.geometry.coordinates[0]];
           if (selected.bbox) {
             bbox = selected.bbox;
             map.fitBounds([[bbox[1],bbox[0]],[bbox[3], bbox[2]]]);
           } else {
-            map.setView(selected.geometry.coordinates);
+            map.setView(searchedLocation, 12);
           }
-          searchedLocation = [selected.geometry.coordinates[1], selected.geometry.coordinates[0]];
+          
           eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
         });
     },
@@ -219,9 +220,8 @@ var eventsMap = function() {
         d3.select("#events").attr("class",eventsToShow.length ? "event" : "error");
 
         eventsToShow.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
-        var events = eventsToShow.filter(function(a){ return a.guestsCanInviteOthers; });
 
-        var events = d3.select(".event-list").selectAll(".list-event").data(events);
+        var events = d3.select(".event-list").selectAll(".list-event").data(eventsToShow);
         var entering = events.enter().append("div").attr("class","list-event");
         var enterTitle = entering.append("h3");
         enterTitle.append("span");
