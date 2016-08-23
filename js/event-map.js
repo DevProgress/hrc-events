@@ -79,13 +79,24 @@ var eventsMap = function() {
     addMarkers : function(features) {
       markers = [];
       features.forEach(function(f){
-        var marker = L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude));
+        var newIcon = L.icon({
+          iconUrl: 'images/map_marker.png',
+          iconSize:     [32, 32], // size of the icon
+          iconAnchor:   [16, 32], // point of the icon which will correspond to marker's location
+          popupAnchor:  [0, -36] // point from which the popup should open relative to the iconAnchor
+        });
+        var marker = L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude), {icon: newIcon});
+        // DEBUGGING RE: EVENT STATUS
+        if (f.locations[0].status !== 'verified' || f.status !== 'confirmed') {
+          console.log(f)
+        }
+        var rsvpUrl = 'https://www.hillaryclinton.com/events/view/' + f.lookupId
         marker.bindPopup(
           "<h2>"+f.name+"</h2><p class='time'>"
           +eventsApp.formatDate(f.startDate, f.endDate)
           +"</p><p class='location'>"+eventsApp.formatLocation(f.locations[0])
           +"</p><p class='description'>"+f.description
-          +"</p><p class='rsvp'><a href='https://www.hillaryclinton.com/events/view/'"+f.lookupId+">rsvp</a></p>"
+          +"</p><p class='rsvp'><a href=" + rsvpUrl + ">rsvp</a></p>"
         );
         markers.push(marker);
         marker.addTo(map);
