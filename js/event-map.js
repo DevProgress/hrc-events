@@ -26,7 +26,8 @@ var eventsMap = function() {
         scrollWheelZoom : false,
         scene : L.Mapzen.HouseStyles.Refill
       });
-      map.fitBounds([[48,-123], [28,-70]]);
+      // disable default state to preference user location:
+      // map.fitBounds([[48,-123], [28,-70]]);
 
       map.on("moveend",function(){
         if (!document.getElementById('move-update').checked) return;
