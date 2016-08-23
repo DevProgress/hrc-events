@@ -42,6 +42,11 @@ html, body {
 #events.search-error .search-error-wrapper {
   display: block;
 }
+#events h2 {
+  font-weight: bold;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
 
 /*********** map styles ***********/
 
