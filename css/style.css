@@ -138,18 +138,7 @@ html, body {
   border-color: #12a8e0;
   outline: 0;
 }
-#searchbox .fa-times {
-  display: none;
-  font-style: normal;
-  position: absolute;
-  margin: 7px 0 0 -24px;
-  color: #808080;
-  cursor: pointer;
-}
-#searchbox .fa-times:hover {
-  color: #000;
-}
-#searchbox button {
+#searchbox .search-button {
   font-weight: bold;
   font-size: 19px;
   padding: 0 18px;
@@ -161,13 +150,29 @@ html, body {
   margin-left: 8px;
   cursor: pointer;
 }
-#searchbox button:focus,
-#searchbox button:hover {
+#searchbox .search-button:focus,
+#searchbox .search-button:hover {
   background: #0d8ebe;
   outline: 0;
 }
-#searchbox select {
-  font-size: 18px;
+#searchbox .clear-button {
+  display: none;
+  position: absolute;
+  cursor: pointer;
+  color: #fff;
+  background: #12a8e0;
+  border: 0;
+  border-radius: 50%;
+  right: 10px;
+  top: 10px;
+  height: 24px;
+  width: 24px;
+  padding-top: 4px;
+}
+#searchbox .clear-button:hover,
+#searchbox .clear-button:focus {
+  background: #0d8ebe;
+  outline: 0;
 }
 
 /*********** autocomplete dropdown styles ***********/

@@ -45,7 +45,7 @@ var eventsMap = function() {
       d3.select("#search-input").on("keyup",function(){
         eventsApp.processKeyup(d3.event);
       });
-      d3.select(".fa-times").on("click",function(){
+      d3.select(".clear-button").on("click",function(){
         eventsApp.clearSearchBox();
       });
     },
@@ -105,7 +105,7 @@ var eventsMap = function() {
       var inputDiv = document.getElementById("search-input");
       var val = inputDiv.value;
 
-      d3.select(".fa-times").style("display","inline-block");
+      d3.select(".clear-button").style("display","inline-block");
 
       if (!val.length) {
         eventsApp.clearSearchBox();
@@ -171,7 +171,7 @@ var eventsMap = function() {
     clearSearchBox : function() {
       // triggered by "x" click or an empty search box
       document.getElementById("search-input").value = "";
-      d3.select(".fa-times").style("display","none");
+      d3.select(".clear-button").style("display","none");
       d3.selectAll(".suggestion").remove();
     },
     onSubmit: function(query) {

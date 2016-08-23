@@ -19,11 +19,15 @@
         <div id="searchbox">
           <div class="search-column search-primary">
             <input type="text" id="search-input" placeholder="Enter a city, neighborhood, address, or zip code">
-            <span class="fa fa-times" aria-hidden="true"></span>
+            <button class="clear-button" aria-hidden="true">
+              <svg class="icon icon-x" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true">
+                <path d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48z"></path>
+              </svg>
+            </button>
             <div class="autocomplete"></div>
           </div>
           <div class="search-column">
-            <button type="submit">Search</button>
+            <button class="search-button" type="submit">Search</button>
           </div>
           <div class="search-row radius-wrapper" style="display: none;">
             <label>Show me events within:</label>
