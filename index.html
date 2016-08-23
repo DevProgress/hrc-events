@@ -14,12 +14,12 @@
   <body>
     <div id="events" class="start">
       <div class="header">
-        <h1><span class="hrc"></span>Hillary Map</h1>
+        <h1>Hillary Events Map</h1>
       </div>
       <div class="start-wrapper state">
         <p>#ImWithHer, somewhere near you. Get started by searching for your location, and the map will display upcoming events in your area.</p>
       </div>
-      
+
       <div id="searchbox">
         <div class="search-row">
           <label>Search for a city, neighborhood, address, or zip code:</label>
@@ -64,7 +64,7 @@
     <script type="text/javascript">
       var e = eventsMap();
       e.init();
-      
+
       if (document.getElementById("search-input").value.length)
         e.onSubmit(document.getElementById("search-input").value);
     </script>

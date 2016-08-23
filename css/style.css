@@ -9,25 +9,15 @@ html, body {
 /*********** header styles ***********/
 
 .header {
-  background: rgba(12,87,161,.2);
-  padding: 10px 20px;
+  padding: 20px;
 }
 .header h1 {
-  font-size: 45px;
-  line-height: 68px;
-  vertical-align: middle;
-  margin: 0;
-  font-weight: normal;
-}
-.hrc {
-  background: url(./Highlight_h_logo_large.png);
-  background-repeat: no-repeat;
-  background-size: contain;
-  display: inline-block;
-  width: 80px;
-  height: 68px;
-  margin-right: 20px;
-  float: left;
+  width: 70px;
+  height: 0;
+  padding-top: 59px;
+  overflow: hidden;
+  background: url("../images/hillary-logo.png");
+  background-size: 100%;
 }
 
 /*********** text group styles ***********/
@@ -208,7 +198,7 @@ html, body {
 }
 .list-event .rsvp:hover,
 .leaflet-popup-content .rsvp a:hover {
-  background: rgba(192,23,38,.2); 
+  background: rgba(192,23,38,.2);
 }
 .list-event .location {
   font-style: italic;
