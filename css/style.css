@@ -1,43 +1,46 @@
+/*********** reset ***********/
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{margin:0;padding:0;border:0;font-size:100%;font:inherit;vertical-align:baseline}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}table{border-collapse:collapse;border-spacing:0}.clearfix{overflow: auto;zoom: 1;}*,*:before,*:after{box-sizing: border-box;}
+
 html, body {
   width: 100%;
   height: 100%;
   padding: 0;
   margin: 0;
-  font-family: Tofino,'Helvetica Neue',Helvetica,sans-serif;
+  font-family: 'Helvetica Neue', Helvetica, sans-serif;
+  line-height: 1.4;
+  color: #333;
+}
+
+.icon {
+  display: inline-block;
+  fill: currentColor;
 }
 
 /*********** header styles ***********/
 
 .header {
-  background: rgba(12,87,161,.2);
-  padding: 10px 20px;
+  padding: 20px;
 }
 .header h1 {
-  font-size: 45px;
-  line-height: 68px;
-  vertical-align: middle;
-  margin: 0;
-  font-weight: normal;
-}
-.hrc {
-  background: url(./Highlight_h_logo_large.png);
-  background-repeat: no-repeat;
-  background-size: contain;
-  display: inline-block;
-  width: 80px;
-  height: 68px;
-  margin-right: 20px;
-  float: left;
+  margin: 0 auto 20px;
+  width: 70px;
+  height: 0;
+  padding-top: 59px;
+  overflow: hidden;
+  background: url("../images/hillary-logo.png");
+  background-size: 100%;
 }
 
 /*********** text group styles ***********/
 
 #events {
-  box-sizing: border-box;
+  width: 40%;
+  height: 100%;
 }
 #events .state {
   display: none;
   padding: 20px;
+  padding-bottom: 0;
 }
 #events.start .start-wrapper,
 #events.event .event-wrapper,
@@ -45,11 +48,16 @@ html, body {
 #events.search-error .search-error-wrapper {
   display: block;
 }
+#events h2 {
+  font-weight: bold;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
 
 /*********** map styles ***********/
 
-#map, #events{
-  width: 50%;
+#map {
+  width: 60%;
   height: 100%;
 }
 #map {
@@ -79,103 +87,112 @@ html, body {
   opacity: .5;
   pointer-events: none;
 }
-
-.leaflet-popup-content p {
-  margin: 10px 0;
+.leaflet-popup-content {
+  margin: 20px;
 }
-.leaflet-popup-content .fa-map-marker,
-.leaflet-popup-content .fa-calendar-o {
-  margin-right: 7px;
-  width: 10px;
-  text-align: center;
+.leaflet-container a.leaflet-popup-close-button {
+  top: 18px;
+  right: 16px;
 }
 .leaflet-popup-content .rsvp {
-  text-align: center;
-  height: 20px;
-  width: 100%;
+  padding-left: 23px;
   margin-top: 15px;
 }
 .leaflet-popup-content .rsvp a {
-  font-weight: bold;
   float: none !important;
 }
 
 /*********** searchbox styles ***********/
 
 #searchbox {
-  background: whitesmoke;
-  padding: 20px;
-  margin: 20px;
+  display: table;
 }
-#searchbox .search-row {
-  margin-bottom: 20px;
+#searchbox .search-column {
+  position: relative;
+  display: table-cell;
+  width: 1%;
+  white-space: nowrap;
+  vertical-align: middle;
 }
-#searchbox .search-row:last-child {
-  margin-bottom: 0;
+#searchbox .search-primary {
+  width: 99%;
 }
 #searchbox input[type="text"] {
-  width: 365px;
-  font-size: 16px;
-  padding: 5px 22px 4px 10px;
   overflow: hidden;
   text-overflow: ellipsis;
+  height: 44px;
+  width: 100%;
+  background: #fff;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  padding: 0 9px;
+  font-size: 19px;
 }
-#searchbox .fa-times {
-  display: none;
-  font-style: normal;
-  position: absolute;
-  margin: 7px 0 0 -24px;
-  color: #808080;
-  cursor: pointer;
+#searchbox input[type="text"]:focus {
+  border-color: #12a8e0;
+  outline: 0;
 }
-#searchbox .fa-times:hover {
-  color: #000;
-}
-#searchbox button {
-  -webkit-appearance: none;
-  appearance: none;
-  font-size: 16px;
-  text-transform: uppercase;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  background: white;
-  padding: 6px 10px 5px;
-  color: #808080;
-  font-weight: 100;
-  margin-left: -6px;
-}
-#searchbox button:hover {
-  border-color: #000;
-  color: #000;
-}
-#searchbox select {
-  font-size: 18px;
-}
-#searchbox label {
-  text-transform: uppercase;
-  font-size: 12px;
+#searchbox .search-button {
   font-weight: bold;
-  display: block;
-  margin-bottom: 5px;
+  font-size: 19px;
+  padding: 0 18px;
+  color: #fff;
+  height: 44px;
+  background: #12a8e0;
+  border: 0;
+  border-radius: 5px;
+  margin-left: 8px;
+  cursor: pointer;
+}
+#searchbox .search-button:focus,
+#searchbox .search-button:hover {
+  background: #0d8ebe;
+  outline: 0;
+}
+#searchbox .clear-button {
+  display: none;
+  position: absolute;
+  cursor: pointer;
+  color: #fff;
+  background: #12a8e0;
+  border: 0;
+  border-radius: 50%;
+  right: 10px;
+  top: 10px;
+  height: 24px;
+  width: 24px;
+  padding-top: 4px;
+}
+#searchbox .clear-button:hover,
+#searchbox .clear-button:focus {
+  background: #0d8ebe;
+  outline: 0;
 }
 
 /*********** autocomplete dropdown styles ***********/
 
 .autocomplete {
   position: absolute;
-  width: 400px;
-  background: white;
+  width: 100%;
+  background: #fff;
 }
 .suggestion {
-  border-bottom: 1px solid #ddd;
-  border-left: 1px solid #ddd;
-  border-right: 1px solid #ddd;
-  padding: 2px 0 2px 10px;
+  border: 2px solid #ddd;
+  border-bottom: 0;
+  padding: 8px 0 8px 10px;
   color: #808080;
   cursor: pointer;
-  font-size: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.suggestion:first-child {
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+.suggestion:last-child {
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-bottom: 2px solid #ddd;
 }
 .suggestion.selected {
   color: #000;
@@ -188,39 +205,68 @@ html, body {
 
 /*********** event search results styles ***********/
 
+.event-list {
+  margin-left: -20px;
+  margin-right: -20px;
+}
 .list-event {
-  padding: 10px 20px;
-  margin-bottom: 10px;
+  padding: 20px;
+  border-top: 2px solid #eee;
 }
 .list-event:nth-child(odd) {
-  background: whitesmoke;
+  background: #f7f7f7;
+}
+.list-event h3 {
+  font-weight: bold;
+  font-size: 22px;
+  margin-bottom: 12px;
 }
 .list-event .rsvp,
 .leaflet-popup-content .rsvp a {
   float: right;
-  color: rgb(192,23,38);
-  border: 1px solid rgb(192,23,38);
+  color: #fff;
   text-transform: uppercase;
   text-decoration: none;
   font-size: 12px;
-  padding: 2px 10px;
-  background: rgba(192,23,38,.1);
+  font-weight: bold;
+  padding: 8px 10px;
+  background: #12a8e0;
+  border-radius: 4px;
 }
 .list-event .rsvp:hover,
 .leaflet-popup-content .rsvp a:hover {
-  background: rgba(192,23,38,.2); 
+  background: #0d8eBe;
 }
-.list-event .location {
-  font-style: italic;
+.location,
+.time {
+  padding-left: 23px;
+  margin-bottom: 8px;
 }
-.list-event .location .fa-map-marker,
-.list-event .time .fa-calendar-o {
-  margin-right: 10px;
+.list-event .icon,
+.leaflet-popup-content .icon {
   float: left;
-  width: 15px;
-  text-align: center;
 }
-.list-event .description {
-  font-size: 14px;
-  color: #555;
+.icon-calendar {
+  margin-left: -23px;
+  margin-top: 2px;
+}
+.icon-location {
+  margin-left: -21px;
+  margin-top: 3px;
+}
+.leaflet-popup-content .icon-calendar,
+.leaflet-popup-content .icon-location {
+  margin-top: 0;
+}
+.description {
+  margin-top: 12px;
+  padding-left: 23px;
+  font-size: 12px;
+  color: #717171;
+  line-height: 1.8;
+}
+.leaflet-popup-content h2 {
+  max-width: 275px;
+  font-weight: bold;
+  font-size: 18px;
 }
