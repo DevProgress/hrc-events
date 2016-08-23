@@ -68,12 +68,12 @@ var eventsMap = function() {
       if (end && dateFormat(start) == dateFormat(end))
         var dateString = dateFormat(start) + ", " + hourFormat(start) + " - " + hourFormat(end);
       else
-        var dateString = wholeDate(start) + (end ?  (" - " + wholeDate(end)) : ""); 
+        var dateString = wholeDate(start) + (end ?  (" - " + wholeDate(end)) : "");
       return '<i class="fa fa-calendar-o" aria-hidden="true"></i>' + dateString;
     },
     formatLocation: function(p) {
-      return '<i class="fa fa-map-marker" aria-hidden="true"></i>' 
-        + (p.name ? p.name + ", " : "") + p.address1 + " " + p.address2 
+      return '<i class="fa fa-map-marker" aria-hidden="true"></i>'
+        + (p.name ? p.name + ", " : "") + p.address1 + " " + p.address2
         + " " + p.city + " " + p.postalCode;
     },
     addMarkers : function(features) {
@@ -134,7 +134,7 @@ var eventsMap = function() {
     selectSuggestion : function() {
       // for handling keyboard input on the autocomplete list
       var currentList = d3.selectAll(".suggestion");
-      currentList.each(function(d, i){ 
+      currentList.each(function(d, i){
         if (i == keyIndex) {
           document.getElementById("search-input").value = d.name ? d.name : d.properties.label;
         }
@@ -199,7 +199,7 @@ var eventsMap = function() {
           } else {
             map.setView(searchedLocation, 12);
           }
-          
+
           eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
         });
     },
@@ -211,7 +211,7 @@ var eventsMap = function() {
 
         // events happening at NYC City Hall have a fake location, are not actually happening there, and should not be shown
         var eventsToShow = _.reject(json.events, function(event) { return event.locations[0].latitude == "40.7127837" && event.locations[0].longitude == "-74.0059413" } );
-        
+
         markers.forEach(function(m){
           map.removeLayer(m);
         });
@@ -223,14 +223,13 @@ var eventsMap = function() {
 
         var events = d3.select(".event-list").selectAll(".list-event").data(eventsToShow);
         var entering = events.enter().append("div").attr("class","list-event");
-        var enterTitle = entering.append("h3");
-        enterTitle.append("span");
-        enterTitle.append("a").attr("class","rsvp").text("rsvp");
+        entering.append("a").attr("class","rsvp").text("RSVP");
+        entering.append("h3");
         entering.append("p").attr("class","time");
         entering.append("p").attr("class","location");
         entering.append("p").attr("class","description");
         events.exit().remove();
-        events.select("h3 span").text(function(d){ return d.name; });
+        events.select("h3").text(function(d){ return d.name; });
         events.select(".time").html(function(d){
           return eventsApp.formatDate(d.startDate, d.endDate);
         });
