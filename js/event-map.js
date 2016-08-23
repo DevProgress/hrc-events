@@ -1,6 +1,7 @@
 var eventsMap = function() {
   var map,
     markers = [],
+    markerGroup = L.markerClusterGroup(),
     keyIndex = -1,
     xhr,
     searchedLocation,
@@ -78,6 +79,7 @@ var eventsMap = function() {
     },
     addMarkers : function(features) {
       markers = [];
+      markerGroup.clearLayers()
       features.forEach(function(f){
         var newIcon = L.icon({
           iconUrl: 'images/map_marker.png',
@@ -99,8 +101,9 @@ var eventsMap = function() {
           +"</p><p class='rsvp'><a href=" + rsvpUrl + ">rsvp</a></p>"
         );
         markers.push(marker);
-        marker.addTo(map);
       });
+      markerGroup.addLayers(markers);
+      map.addLayer(markerGroup);
 
       // zoom to fit markers if the "update map button" is unchecked
       if (document.getElementById('move-update').checked || !markers.length) return;
