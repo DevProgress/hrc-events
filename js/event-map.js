@@ -221,7 +221,7 @@ var eventsMap = function() {
           eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
         });
     },
-      doEventSearch : function(lat, lng, radius) {
+    doEventSearch : function(lat, lng, radius) {
       // shameful hack to work around all the NYC City Hall events;
       // by retrieving 500 results and ignoring the NYC City Hall ones we get reasonable
       // behavior for Manhattan users.
