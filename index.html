@@ -15,28 +15,30 @@
     <div id="events" class="start">
       <div class="header">
         <h1>Hillary Events Map</h1>
+
+        <div id="searchbox">
+          <div class="search-column search-primary">
+            <input type="text" id="search-input" placeholder="Search for a city, neighborhood, address, or zip code">
+            <span class="fa fa-times" aria-hidden="true"></span>
+            <div class="autocomplete"></div>
+          </div>
+          <div class="search-column">
+            <button type="submit">Submit</button>
+          </div>
+          <div class="search-row radius-wrapper" style="display: none;">
+            <label>Show me events within:</label>
+            <select id="radius-select">
+              <option value="5">5 Miles</option>
+              <option value="10" selected>10 Miles</option>
+              <option value="25">25 Miles</option>
+              <option value="50">50 Miles</option>
+            </select>
+          </div>
+        </div>
       </div>
+      
       <div class="start-wrapper state">
         <p>#ImWithHer, somewhere near you. Get started by searching for your location, and the map will display upcoming events in your area.</p>
-      </div>
-
-      <div id="searchbox">
-        <div class="search-row">
-          <label>Search for a city, neighborhood, address, or zip code:</label>
-          <input type="text" id="search-input" placeholder="example: San Francisco">
-          <span class="fa fa-times" aria-hidden="true"></span>
-          <button>Submit</button>
-          <div class="autocomplete"></div>
-        </div>
-        <div class="search-row radius-wrapper">
-          <label>Show me events within:</label>
-          <select id="radius-select">
-            <option value="5">5 Miles</option>
-            <option value="10" selected>10 Miles</option>
-            <option value="25">25 Miles</option>
-            <option value="50">50 Miles</option>
-          </select>
-        </div>
       </div>
 
       <div class="event-wrapper state">
