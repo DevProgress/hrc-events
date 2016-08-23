@@ -93,7 +93,7 @@ var eventsMap = function() {
         var marker = L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude), {icon: newIcon});
         // DEBUGGING RE: EVENT STATUS
         if (f.locations[0].status !== 'verified' || f.status !== 'confirmed') {
-          console.log(f)
+          //console.log(f)
         }
         var rsvpUrl = 'https://www.hillaryclinton.com/events/view/' + f.lookupId
         marker.bindPopup(
@@ -221,7 +221,7 @@ var eventsMap = function() {
           eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
         });
     },
-    doEventSearch : function(lat, lng, radius) {
+      doEventSearch : function(lat, lng, radius) {
       // shameful hack to work around all the NYC City Hall events;
       // by retrieving 500 results and ignoring the NYC City Hall ones we get reasonable
       // behavior for Manhattan users.
@@ -229,7 +229,14 @@ var eventsMap = function() {
 
         // events happening at NYC City Hall have a fake location, are not actually happening there, and should not be shown
         var eventsToShow = _.reject(json.events, function(event) { return event.locations[0].latitude == "40.7127837" && event.locations[0].longitude == "-74.0059413" } );
-
+        
+        // bump the radius until an event is found within 150mi
+        if (eventsToShow.length < 1 && radius <= 150) {
+          radius = radius*2
+          console.log('too small - bumping to ' + radius + ' miles')
+          eventsApp.doEventSearch(lat, lng, radius);
+        }
+        
         markers.forEach(function(m){
           map.removeLayer(m);
         });
