@@ -26,7 +26,8 @@ html, body {
 /*********** text group styles ***********/
 
 #events {
-  box-sizing: border-box;
+  width: 40%;
+  height: 100%;
 }
 #events .state {
   display: none;
@@ -41,8 +42,8 @@ html, body {
 
 /*********** map styles ***********/
 
-#map, #events{
-  width: 50%;
+#map {
+  width: 60%;
   height: 100%;
 }
 #map {
