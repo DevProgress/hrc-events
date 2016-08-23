@@ -81,7 +81,7 @@ var eventsMap = function() {
       features.forEach(function(f){
         var marker = L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude));
         marker.bindPopup(
-          "<h2>"+f.name+"</h2><p>"
+          "<h2>"+f.name+"</h2><p class='time'>"
           +eventsApp.formatDate(f.startDate, f.endDate)
           +"</p><p class='location'>"+eventsApp.formatLocation(f.locations[0])
           +"</p><p class='description'>"+f.description

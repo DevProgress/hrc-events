@@ -87,24 +87,18 @@ html, body {
   opacity: .5;
   pointer-events: none;
 }
-
-.leaflet-popup-content p {
-  margin: 10px 0;
+.leaflet-popup-content {
+  margin: 20px;
 }
-.leaflet-popup-content .fa-map-marker,
-.leaflet-popup-content .fa-calendar-o {
-  margin-right: 7px;
-  width: 10px;
-  text-align: center;
+.leaflet-container a.leaflet-popup-close-button {
+  top: 18px;
+  right: 16px;
 }
 .leaflet-popup-content .rsvp {
-  text-align: center;
-  height: 20px;
-  width: 100%;
+  padding-left: 23px;
   margin-top: 15px;
 }
 .leaflet-popup-content .rsvp a {
-  font-weight: bold;
   float: none !important;
 }
 
@@ -243,26 +237,36 @@ html, body {
 .leaflet-popup-content .rsvp a:hover {
   background: #0d8eBe;
 }
-.list-event .location,
-.list-event .time {
+.location,
+.time {
   padding-left: 23px;
   margin-bottom: 8px;
 }
-.list-event .icon {
+.list-event .icon,
+.leaflet-popup-content .icon {
   float: left;
 }
-.list-event .icon-calendar {
+.icon-calendar {
   margin-left: -23px;
   margin-top: 2px;
 }
-.list-event .icon-location {
+.icon-location {
   margin-left: -21px;
   margin-top: 3px;
 }
-.list-event .description {
+.leaflet-popup-content .icon-calendar,
+.leaflet-popup-content .icon-location {
+  margin-top: 0;
+}
+.description {
   margin-top: 12px;
-  margin-left: 23px;
+  padding-left: 23px;
   font-size: 12px;
   color: #717171;
   line-height: 1.8;
+}
+.leaflet-popup-content h2 {
+  max-width: 275px;
+  font-weight: bold;
+  font-size: 18px;
 }
