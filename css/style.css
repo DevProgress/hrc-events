@@ -98,22 +98,32 @@ html, body {
 /*********** searchbox styles ***********/
 
 #searchbox {
-  background: whitesmoke;
-  padding: 20px;
-  margin: 20px;
+  display: table;
 }
-#searchbox .search-row {
-  margin-bottom: 20px;
+#searchbox .search-column {
+  position: relative;
+  display: table-cell;
+  width: 1%;
+  white-space: nowrap;
+  vertical-align: middle;
 }
-#searchbox .search-row:last-child {
-  margin-bottom: 0;
+#searchbox .search-primary {
+  width: 99%;
 }
 #searchbox input[type="text"] {
-  width: 365px;
-  font-size: 16px;
-  padding: 5px 22px 4px 10px;
   overflow: hidden;
   text-overflow: ellipsis;
+  height: 44px;
+  width: 100%;
+  background: #fff;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  padding: 0 9px;
+  font-size: 19px;
+}
+#searchbox input[type="text"]:focus {
+  border-color: #12a8e0;
+  outline: 0;
 }
 #searchbox .fa-times {
   display: none;
@@ -127,31 +137,18 @@ html, body {
   color: #000;
 }
 #searchbox button {
-  -webkit-appearance: none;
-  appearance: none;
-  font-size: 16px;
-  text-transform: uppercase;
-  border: 1px solid #ccc;
+  font-size: 19px;
+  padding: 0 18px;
+  color: #fff;
+  height: 44px;
+  background: #12a8e0;
+  border-radius: 5px;
+  border: 2px solid #12a8e0;
+  margin-left: 8px;
   cursor: pointer;
-  background: white;
-  padding: 6px 10px 5px;
-  color: #808080;
-  font-weight: 100;
-  margin-left: -6px;
-}
-#searchbox button:hover {
-  border-color: #000;
-  color: #000;
 }
 #searchbox select {
   font-size: 18px;
-}
-#searchbox label {
-  text-transform: uppercase;
-  font-size: 12px;
-  font-weight: bold;
-  display: block;
-  margin-bottom: 5px;
 }
 
 /*********** autocomplete dropdown styles ***********/
