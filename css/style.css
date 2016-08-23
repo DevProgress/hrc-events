@@ -11,6 +11,11 @@ html, body {
   color: #333;
 }
 
+.icon {
+  display: inline-block;
+  fill: currentColor;
+}
+
 /*********** header styles ***********/
 
 .header {
@@ -35,6 +40,7 @@ html, body {
 #events .state {
   display: none;
   padding: 20px;
+  padding-bottom: 0;
 }
 #events.start .start-wrapper,
 #events.event .event-wrapper,
@@ -234,20 +240,24 @@ html, body {
 }
 .list-event .location,
 .list-event .time {
-  padding-left: 25px;
+  padding-left: 23px;
   margin-bottom: 8px;
 }
-.list-event .location .fa-map-marker,
-.list-event .time .fa-calendar-o {
-  margin-left: -25px;
+.list-event .icon {
   float: left;
-  width: 15px;
-  text-align: center;
+}
+.list-event .icon-calendar {
+  margin-left: -23px;
+  margin-top: 2px;
+}
+.list-event .icon-location {
+  margin-left: -21px;
+  margin-top: 3px;
 }
 .list-event .description {
   margin-top: 12px;
-  margin-left: 25px;
+  margin-left: 23px;
   font-size: 12px;
-  color: #929292;
+  color: #717171;
   line-height: 1.8;
 }
