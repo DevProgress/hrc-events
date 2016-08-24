@@ -2,7 +2,8 @@ var eventsMap = function() {
   var map,
     markers = [],
     markerGroup = L.markerClusterGroup({
-      showCoverageOnHover: false
+      showCoverageOnHover: false,
+      animate: false
     }),
     keyIndex = -1,
     xhr,
@@ -136,7 +137,7 @@ var eventsMap = function() {
       markerGroup.clearLayers()
       features.forEach(function(f){
         var newIcon = L.icon({
-          iconUrl: 'images/map_marker.png',
+          iconUrl: 'images/octicon-location.png',
           iconSize:     [32, 32], // size of the icon
           iconAnchor:   [16, 32], // point of the icon which will correspond to marker's location
           popupAnchor:  [0, -36] // point from which the popup should open relative to the iconAnchor
