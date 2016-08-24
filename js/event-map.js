@@ -1,7 +1,9 @@
 var eventsMap = function() {
   var map,
     markers = [],
-    markerGroup = L.markerClusterGroup(),
+    markerGroup = L.markerClusterGroup({
+      showCoverageOnHover: false
+    }),
     keyIndex = -1,
     xhr,
     searchedLocation,
@@ -28,7 +30,8 @@ var eventsMap = function() {
         scrollWheelZoom : false,
         scene : L.Mapzen.HouseStyles.Refill
       });
-      map.fitBounds([[48,-123], [28,-70]]);
+      // disable default state to preference user location:
+      // map.fitBounds([[48,-123], [28,-70]]);
 
       map.on("moveend",function(){
         if (!document.getElementById('move-update').checked) return;
@@ -50,7 +53,7 @@ var eventsMap = function() {
       d3.select("#search-input").on("keyup",function(){
         eventsApp.processKeyup(d3.event);
       });
-      d3.select(".fa-times").on("click",function(){
+      d3.select(".clear-button").on("click",function(){
         eventsApp.clearSearchBox();
       });
     },
@@ -120,25 +123,36 @@ var eventsMap = function() {
       if (end && dateFormat(start) == dateFormat(end))
         var dateString = dateFormat(start) + ", " + hourFormat(start) + " - " + hourFormat(end);
       else
-        var dateString = wholeDate(start) + (end ?  (" - " + wholeDate(end)) : ""); 
-      return '<i class="fa fa-calendar-o" aria-hidden="true"></i>' + dateString;
+        var dateString = wholeDate(start) + (end ?  (" - " + wholeDate(end)) : "");
+      return '<svg class="icon icon-calendar" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path d="M13 2h-1v1.5c0 .28-.22.5-.5.5h-2c-.28 0-.5-.22-.5-.5V2H6v1.5c0 .28-.22.5-.5.5h-2c-.28 0-.5-.22-.5-.5V2H2c-.55 0-1 .45-1 1v11c0 .55.45 1 1 1h11c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1zm0 12H2V5h11v9zM5 3H4V1h1v2zm6 0h-1V1h1v2zM6 7H5V6h1v1zm2 0H7V6h1v1zm2 0H9V6h1v1zm2 0h-1V6h1v1zM4 9H3V8h1v1zm2 0H5V8h1v1zm2 0H7V8h1v1zm2 0H9V8h1v1zm2 0h-1V8h1v1zm-8 2H3v-1h1v1zm2 0H5v-1h1v1zm2 0H7v-1h1v1zm2 0H9v-1h1v1zm2 0h-1v-1h1v1zm-8 2H3v-1h1v1zm2 0H5v-1h1v1zm2 0H7v-1h1v1zm2 0H9v-1h1v1z"></path></svg>' + dateString;
     },
     formatLocation: function(p) {
-      return '<i class="fa fa-map-marker" aria-hidden="true"></i>' 
-        + (p.name ? p.name + ", " : "") + p.address1 + " " + p.address2 
+      return '<svg class="icon icon-location" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path d="M6 0C2.69 0 0 2.5 0 5.5 0 10.02 6 16 6 16s6-5.98 6-10.5C12 2.5 9.31 0 6 0zm0 14.55C4.14 12.52 1 8.44 1 5.5 1 3.02 3.25 1 6 1c1.34 0 2.61.48 3.56 1.36.92.86 1.44 1.97 1.44 3.14 0 2.94-3.14 7.02-5 9.05zM8 5.5c0 1.11-.89 2-2 2-1.11 0-2-.89-2-2 0-1.11.89-2 2-2 1.11 0 2 .89 2 2z"></path></svg>'
+        + (p.name ? p.name + ", " : "") + p.address1 + " " + p.address2
         + " " + p.city + " " + p.postalCode;
     },
     addMarkers : function(features) {
       markers = [];
       markerGroup.clearLayers()
       features.forEach(function(f){
-        var marker = L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude));
+        var newIcon = L.icon({
+          iconUrl: 'images/map_marker.png',
+          iconSize:     [32, 32], // size of the icon
+          iconAnchor:   [16, 32], // point of the icon which will correspond to marker's location
+          popupAnchor:  [0, -36] // point from which the popup should open relative to the iconAnchor
+        });
+        var marker = L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude), {icon: newIcon});
+        // DEBUGGING RE: EVENT STATUS
+        if (f.locations[0].status !== 'verified' || f.status !== 'confirmed') {
+          //console.log(f)
+        }
+        var rsvpUrl = 'https://www.hillaryclinton.com/events/view/' + f.lookupId
         marker.bindPopup(
-          "<h2>"+f.name+"</h2><p>"
+          "<h2>"+f.name+"</h2><p class='time'>"
           +eventsApp.formatDate(f.startDate, f.endDate)
           +"</p><p class='location'>"+eventsApp.formatLocation(f.locations[0])
           +"</p><p class='description'>"+f.description
-          +"</p><p class='rsvp'><a href='https://www.hillaryclinton.com/events/view/'"+f.lookupId+">rsvp</a></p>"
+          +"</p><p class='rsvp'><a href=" + rsvpUrl + ">rsvp</a></p>"
         );
         markers.push(marker);
       });
@@ -159,7 +173,7 @@ var eventsMap = function() {
       var inputDiv = document.getElementById("search-input");
       var val = inputDiv.value;
 
-      d3.select(".fa-times").style("display","inline-block");
+      d3.select(".clear-button").style("display","inline-block");
 
       if (!val.length) {
         eventsApp.clearSearchBox();
@@ -188,7 +202,7 @@ var eventsMap = function() {
     selectSuggestion : function() {
       // for handling keyboard input on the autocomplete list
       var currentList = d3.selectAll(".suggestion");
-      currentList.each(function(d, i){ 
+      currentList.each(function(d, i){
         if (i == keyIndex) {
           document.getElementById("search-input").value = d.name ? d.name : d.properties.label;
         }
@@ -225,7 +239,7 @@ var eventsMap = function() {
     clearSearchBox : function() {
       // triggered by "x" click or an empty search box
       document.getElementById("search-input").value = "";
-      d3.select(".fa-times").style("display","none");
+      d3.select(".clear-button").style("display","none");
       d3.selectAll(".suggestion").remove();
     },
     onSubmit: function(query) {
@@ -247,13 +261,14 @@ var eventsMap = function() {
 
           var selected = json.features[0],
             searchedLocation = [selected.geometry.coordinates[1], selected.geometry.coordinates[0]];
-          if (selected.bbox) {
+            // SKIP SETVIEW UNTIL RESULTS ARE AVAILABLE
+          /*if (selected.bbox) {
             bbox = selected.bbox;
             map.fitBounds([[bbox[1],bbox[0]],[bbox[3], bbox[2]]]);
           } else {
             map.setView(searchedLocation, 12);
-          }
-          
+          }*/
+
           eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
         });
     },
@@ -267,6 +282,15 @@ var eventsMap = function() {
           }
           return (event.startDate < minDt || event.startDate > maxDt);
         });
+
+        // bump the radius until an event is found within 150mi
+        if (eventsToShow.length < 1 && radius <= 150) {
+          radius = radius*2;
+          console.log('too small - bumping to ' + radius + ' miles');
+          eventsApp.doEventSearch(lat, lng, radius);
+          return;
+        }
+
         markers.forEach(function(m){
           map.removeLayer(m);
         });
@@ -278,14 +302,13 @@ var eventsMap = function() {
 
         var events = d3.select(".event-list").selectAll(".list-event").data(eventsToShow);
         var entering = events.enter().append("div").attr("class","list-event");
-        var enterTitle = entering.append("h3");
-        enterTitle.append("span");
-        enterTitle.append("a").attr("class","rsvp").text("rsvp");
+        entering.append("a").attr("class","rsvp").text("RSVP");
+        entering.append("h3");
         entering.append("p").attr("class","time");
         entering.append("p").attr("class","location");
         entering.append("p").attr("class","description");
         events.exit().remove();
-        events.select("h3 span").text(function(d){ return d.name; });
+        events.select("h3").text(function(d){ return d.name; });
         events.select(".time").html(function(d){
           return eventsApp.formatDate(d.startDate, d.endDate);
         });
@@ -294,6 +317,8 @@ var eventsMap = function() {
         });
         events.select(".description").text(function(d){ return d.description; });
         events.select(".rsvp").attr("href",function(d){ return "https://www.hillaryclinton.com/events/view/"+d.lookupId; });
+
+        $("#dateSlider").dateRangeSlider("resize");
     },
 
     doEventSearch : function(lat, lng, radius) {

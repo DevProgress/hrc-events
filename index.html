@@ -3,11 +3,15 @@
   <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>HRC Events Near You</title>
+    <meta property="og:site_name" content="DevProgress"/>
+    <meta property="og:title" content="HRC Events Near You"/>
+    <meta property="og:description" content="Find events and volunteer opportunities with the Clinton campaign in your area"/>
+    <meta property="og:image" content="images/preview.png">
     <!-- Link to mapzen.js script and stylesheets: -->
     <link rel="stylesheet" href="https://mapzen.com/js/mapzen.css">
     <link rel="stylesheet" href="css/jQRangeSlider-5.7.2/classic-min.css" />
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
     <script src="https://mapzen.com/js/mapzen.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/0.5.0/leaflet.markercluster.js"></script>
@@ -19,51 +23,65 @@
     <script src="js/jQDateRangeSlider-withRuler-5.7.2.min.js"></script>
   </head>
   <body>
+    <style>
+      .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div  {
+        background-color: rgba(92, 166, 224, 0.8);
+        color: #ffffff;
+      }
+      .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+        background-color: rgba(255, 255, 255, 0.6);
+      }
+    </style>
     <div id="events" class="start">
       <div class="header">
-        <h1><span class="hrc"></span>Hillary Map</h1>
-      </div>
-      <div class="start-wrapper state">
-        <p>#ImWithHer, somewhere near you. Get started by searching for your location, and the map will display upcoming events in your area.</p>
-      </div>
-      
-      <div id="searchbox">
-        <div class="search-row">
-          <label>Search for a city, neighborhood, address, or zip code:</label>
-          <input type="text" id="search-input" placeholder="example: San Francisco">
-          <span class="fa fa-times" aria-hidden="true"></span>
-          <button>Submit</button>
-          <div class="autocomplete"></div>
-        </div>
-        <div class="search-row radius-wrapper">
-          <label>Show me events within:</label>
-          <select id="radius-select">
-            <option value="5">5 Miles</option>
-            <option value="10" selected>10 Miles</option>
-            <option value="25">25 Miles</option>
-            <option value="50">50 Miles</option>
-          </select>
+        <h1>Hillary Events Map</h1>
+
+        <div id="searchbox">
+          <div class="search-column search-primary">
+            <input type="text" id="search-input" placeholder="Enter a city, neighborhood, address, or zip code">
+            <button class="clear-button" aria-hidden="true">
+              <svg class="icon icon-x" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true">
+                <path d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48z"></path>
+              </svg>
+            </button>
+            <div class="autocomplete"></div>
+          </div>
+          <div class="search-column">
+            <button class="search-button" type="submit">Search</button>
+          </div>
+          <div class="search-row radius-wrapper" style="display: none;">
+            <label>Show me events within:</label>
+            <select id="radius-select">
+              <option value="5">5 Miles</option>
+              <option value="10" selected>10 Miles</option>
+              <option value="25">25 Miles</option>
+              <option value="50">50 Miles</option>
+            </select>
+          </div>
         </div>
 
-        <div class="search-row radius-wrapper">
-          <label>Scheduled for:</label>
+        <div class="start-wrapper state">
+          <p>#ImWithHer, somewhere near you. Get started by searching for your location, and the map will display upcoming events in your area.</p>
+        </div>
+      </div>
+
+        <div class="event-wrapper state">
           <div class="sliderContainer">
             <div id="dateSlider"></div>
           </div>
         </div>
-      </div>
 
       <div class="event-wrapper state">
-        <h2>Events Near You:</h2>
+        <h2>Events Near You</h2>
         <div class="event-list"></div>
       </div>
 
       <div class="error-wrapper state">
         <h2>No events in this area</h2>
-        <p>It looks there are no events in the area you've selected. Try a wider search, or <a href="https://www.hillaryclinton.com/events/" target="_blank">host your own!</a></p>
+        <p>It looks there are no events in the area you’ve selected. Try a wider search, or <a href="https://www.hillaryclinton.com/events/" target="_blank">host your own!</a></p>
       </div>
       <div class="search-error-wrapper state">
-        <h2>We couldn't find your place.</h2>
+        <h2>We couldn’t find your place.</h2>
         <p>We weren't able to find any locations that matched your search, please try again.</p>
       </div>
     </div>
