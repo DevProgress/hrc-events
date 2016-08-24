@@ -10,6 +10,7 @@
     <meta property="og:image" content="images/preview.png">
     <!-- Link to mapzen.js script and stylesheets: -->
     <link rel="stylesheet" href="https://mapzen.com/js/mapzen.css">
+    <link rel="stylesheet" href="css/jQRangeSlider-5.7.2/classic-min.css" />
     <link rel="stylesheet" href="css/style.css">
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
     <script src="https://mapzen.com/js/mapzen.min.js"></script>
@@ -17,6 +18,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/0.5.0/MarkerCluster.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/0.5.0/MarkerCluster.Default.css" />
     <script src="js/d3.v3.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
+    <script src="js/jQDateRangeSlider-withRuler-5.7.2.min.js"></script>
   </head>
   <body>
     <style>
@@ -55,11 +59,17 @@
             </select>
           </div>
         </div>
+
+        <div class="start-wrapper state">
+          <p>#ImWithHer, somewhere near you. Get started by searching for your location, and the map will display upcoming events in your area.</p>
+        </div>
       </div>
 
-      <div class="start-wrapper state">
-        <p>#ImWithHer, somewhere near you. Get started by searching for your location, and the map will display upcoming events in your area.</p>
-      </div>
+        <div class="event-wrapper state">
+          <div class="sliderContainer">
+            <div id="dateSlider"></div>
+          </div>
+        </div>
 
       <div class="event-wrapper state">
         <h2>Events Near You</h2>
