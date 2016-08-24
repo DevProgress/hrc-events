@@ -314,6 +314,14 @@ var eventsMap = function() {
       var self = this;
       d3.json("https://www.hillaryclinton.com/api/events/events?lat="+lat+"&lng="+lng+"&radius="+radius+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=500&onepage=1&_=1457303591599", function(error, json){
         allEvents = json.events;
+        // uncomment to debug duplicates
+        /*var dupes = []
+        for (var e = 0; e < allEvents.length; e++) {
+          if (allEvents[e].locations[0].name == 'Downtown Campaign Office' && allEvents[e].startDate.substring(0, 10) == '2016-08-29') {
+            dupes.push(allEvents[e]);
+          }
+        }
+        console.log(dupes)*/
         // bump the radius until an event is found within 150mi
         if (allEvents.length < 1 && radius <= 150) {
           radius = radius*2;
