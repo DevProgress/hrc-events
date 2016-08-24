@@ -261,13 +261,6 @@ var eventsMap = function() {
 
           var selected = json.features[0],
             searchedLocation = [selected.geometry.coordinates[1], selected.geometry.coordinates[0]];
-            // SKIP SETVIEW UNTIL RESULTS ARE AVAILABLE
-          /*if (selected.bbox) {
-            bbox = selected.bbox;
-            map.fitBounds([[bbox[1],bbox[0]],[bbox[3], bbox[2]]]);
-          } else {
-            map.setView(searchedLocation, 12);
-          }*/
 
           eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
         });
@@ -282,14 +275,6 @@ var eventsMap = function() {
           }
           return (event.startDate < minDt || event.startDate > maxDt);
         });
-
-        // bump the radius until an event is found within 150mi
-        if (eventsToShow.length < 1 && radius <= 150) {
-          radius = radius*2;
-          console.log('too small - bumping to ' + radius + ' miles');
-          eventsApp.doEventSearch(lat, lng, radius);
-          return;
-        }
 
         markers.forEach(function(m){
           map.removeLayer(m);
@@ -327,8 +312,15 @@ var eventsMap = function() {
       // behavior for Manhattan users.
       var self = this;
       d3.json("https://www.hillaryclinton.com/api/events/events?lat="+lat+"&lng="+lng+"&radius="+radius+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=500&onepage=1&_=1457303591599", function(error, json){
-          allEvents = json.events;
-          self.drawEvents();
+        allEvents = json.events;
+        // bump the radius until an event is found within 150mi
+        if (allEvents.length < 1 && radius <= 150) {
+          radius = radius*2;
+          console.log('too small - bumping to ' + radius + ' miles');
+          eventsApp.doEventSearch(lat, lng, radius);
+          return;
+        }
+        self.drawEvents();
       });
     }
   };
