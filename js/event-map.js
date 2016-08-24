@@ -2,7 +2,8 @@ var eventsMap = function() {
   var map,
     markers = [],
     markerGroup = L.markerClusterGroup({
-      showCoverageOnHover: false
+      showCoverageOnHover: false,
+      animate: false
     }),
     keyIndex = -1,
     xhr,
