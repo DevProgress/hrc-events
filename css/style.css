@@ -278,9 +278,6 @@ html, body {
   font-size: 18px;
 }
 /*********** date slider styles ***********/
-.sliderContainer {
-  margin-top: 25px;
-}
 .ui-rangeSlider-label {
   background-image: none;
   font-size: 12px;
@@ -297,6 +294,7 @@ html, body {
 
 .ui-rangeSlider .ui-ruler-tick {
   float: left;
+  margin-top: 5px;
 }
 
 .ui-rangeSlider .ui-ruler-scale0 .ui-ruler-tick-inner {
