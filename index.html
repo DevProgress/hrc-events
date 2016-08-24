@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <!-- Link to mapzen.js script and stylesheets: -->
     <link rel="stylesheet" href="https://mapzen.com/js/mapzen.css">
+    <link rel="stylesheet" href="css/jQRangeSlider-5.7.2/classic-min.css" />
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
@@ -13,6 +14,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/0.5.0/MarkerCluster.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/0.5.0/MarkerCluster.Default.css" />
     <script src="js/d3.v3.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
+    <script src="js/jQDateRangeSlider-withRuler-5.7.2.min.js"></script>
   </head>
   <body>
     <div id="events" class="start">
@@ -39,6 +43,13 @@
             <option value="25">25 Miles</option>
             <option value="50">50 Miles</option>
           </select>
+        </div>
+
+        <div class="search-row radius-wrapper">
+          <label>Scheduled for:</label>
+          <div class="sliderContainer">
+            <div id="dateSlider"></div>
+          </div>
         </div>
       </div>
 
@@ -67,7 +78,7 @@
     <script type="text/javascript">
       var e = eventsMap();
       e.init();
-      
+
       if (document.getElementById("search-input").value.length)
         e.onSubmit(document.getElementById("search-input").value);
     </script>
