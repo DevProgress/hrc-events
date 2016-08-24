@@ -9,6 +9,9 @@ var eventsMap = function() {
     searchedLocation,
     currentDate = new Date(),
     earliestTime = encodeURIComponent(currentDate.toISOString());
+    allEvents = [],
+    minDate = new Date(),
+    maxDate = new Date(minDate.getTime()+(28*1000*60*60*24));
 
   var iso = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ"),
     wholeDate = d3.time.format("%m/%d %I:%M %p"),
@@ -20,6 +23,7 @@ var eventsMap = function() {
       this.setUpMap();
       this.setUpEventHandlers();
       this.tryForAutoLocation();
+      this.setUpDateSlider();
     },
     setUpMap : function() {
       map = L.Mapzen.map('map', {
@@ -65,6 +69,53 @@ var eventsMap = function() {
       // if the browser has a cached location thats not more than one hour
       // old, we'll just use that to make the page go faster.
       {maximumAge: 1000 * 3600});
+    },
+    setUpDateSlider: function() {
+      var thisMonth = new Date();
+      thisMonth.setDate(1);
+      var now = new Date();
+      var boundsMax = new Date(2016, 10, 30);
+      var defaultMax = maxDate;
+      if (defaultMax > boundsMax) {
+        defaultMax = boundsMax;
+      }
+      var months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      jQuery('#dateSlider').dateRangeSlider({
+        arrows: false,
+        bounds: {
+          min: thisMonth,
+          max: boundsMax
+        },
+        defaultValues: {
+          min: now,
+          max: defaultMax
+        },
+        formatter: function(val) {
+          return months[val.getMonth()] +' ' + val.getDate();
+        },
+        scales: [{
+          first: function(value){ return value; },
+          end: function(value) {return value; },
+          next: function(value){
+            var next = new Date(value);
+            return new Date(next.setMonth(value.getMonth() + 1));
+          },
+          label: function(value){
+            return months[value.getMonth()];
+          }
+        }],
+        valueLabels: 'show'
+      });
+      var self = this;
+      $('#dateSlider').on('valuesChanged', function(e, data) {
+        // set min/max dates
+        minDate = data.values.min;
+        maxDate = data.values.max;
+        self.drawEvents();
+      });
     },
     formatDate : function(startDate, endDate) {
       var start = iso.parse(startDate),
@@ -221,22 +272,25 @@ var eventsMap = function() {
           eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
         });
     },
-    doEventSearch : function(lat, lng, radius) {
-      // shameful hack to work around all the NYC City Hall events;
-      // by retrieving 500 results and ignoring the NYC City Hall ones we get reasonable
-      // behavior for Manhattan users.
-      d3.json("https://www.hillaryclinton.com/api/events/events?lat="+lat+"&lng="+lng+"&radius="+radius+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=500&onepage=1&_=1457303591599", function(error, json){
-
+    drawEvents: function() {
         // events happening at NYC City Hall have a fake location, are not actually happening there, and should not be shown
-        var eventsToShow = _.reject(json.events, function(event) { return event.locations[0].latitude == "40.7127837" && event.locations[0].longitude == "-74.0059413" } );
-        
+        var minDt = iso(minDate);
+        var maxDt = iso(maxDate);
+        var eventsToShow = _.reject(allEvents, function(event) {
+          if (event.locations[0].latitude == "40.7127837" && event.locations[0].longitude == "-74.0059413") {
+            return false;
+          }
+          return (event.startDate < minDt || event.startDate > maxDt);
+        });
+
         // bump the radius until an event is found within 150mi
         if (eventsToShow.length < 1 && radius <= 150) {
-          radius = radius*2
-          console.log('too small - bumping to ' + radius + ' miles')
+          radius = radius*2;
+          console.log('too small - bumping to ' + radius + ' miles');
           eventsApp.doEventSearch(lat, lng, radius);
+          return;
         }
-        
+
         markers.forEach(function(m){
           map.removeLayer(m);
         });
@@ -263,6 +317,18 @@ var eventsMap = function() {
         });
         events.select(".description").text(function(d){ return d.description; });
         events.select(".rsvp").attr("href",function(d){ return "https://www.hillaryclinton.com/events/view/"+d.lookupId; });
+
+        $("#dateSlider").dateRangeSlider("resize");
+    },
+
+    doEventSearch : function(lat, lng, radius) {
+      // shameful hack to work around all the NYC City Hall events;
+      // by retrieving 500 results and ignoring the NYC City Hall ones we get reasonable
+      // behavior for Manhattan users.
+      var self = this;
+      d3.json("https://www.hillaryclinton.com/api/events/events?lat="+lat+"&lng="+lng+"&radius="+radius+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=500&onepage=1&_=1457303591599", function(error, json){
+          allEvents = json.events;
+          self.drawEvents();
       });
     }
   };
