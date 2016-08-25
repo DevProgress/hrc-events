@@ -1,10 +1,12 @@
 var eventsMap = function() {
   var map,
     markers = [],
+    markersById = {},
     markerGroup = L.markerClusterGroup({
       showCoverageOnHover: false,
       animate: false
     }),
+    markerGroupIds = {},
     keyIndex = -1,
     xhr,
     searchedLocation,
@@ -133,36 +135,62 @@ var eventsMap = function() {
         + " " + p.city + " " + p.postalCode;
     },
     addMarkers : function(features) {
-      markers = [];
-      markerGroup.clearLayers()
-      features.forEach(function(f){
-        var newIcon = L.icon({
-          iconUrl: 'images/octicon-location.png',
-          iconSize:     [32, 32], // size of the icon
-          iconAnchor:   [16, 32], // point of the icon which will correspond to marker's location
-          popupAnchor:  [0, -36] // point from which the popup should open relative to the iconAnchor
-        });
-        var marker = L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude), {icon: newIcon});
-        // DEBUGGING RE: EVENT STATUS
-        if (f.locations[0].status !== 'verified' || f.status !== 'confirmed') {
-          //console.log(f)
+      var newMarkers = [];
+      var visible = {};
+      features.forEach(function(f) {
+        var marker = markersById[f.lookupId];
+        // make new marker if not already created
+        if (!marker) {
+          var newIcon = L.icon({
+            iconUrl: 'images/octicon-location.png',
+            iconSize:     [32, 32], // size of the icon
+            iconAnchor:   [16, 32], // point of the icon which will correspond to marker's location
+            popupAnchor:  [0, -36] // point from which the popup should open relative to the iconAnchor
+          });
+          marker = L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude), {icon: newIcon});
+          // DEBUGGING RE: EVENT STATUS
+          if (f.locations[0].status !== 'verified' || f.status !== 'confirmed') {
+            //console.log(f)
+          }
+          var rsvpUrl = 'https://www.hillaryclinton.com/events/view/' + f.lookupId;
+          marker.bindPopup(
+            "<h2>"+f.name+"</h2><p class='time'>"
+            +eventsApp.formatDate(f.startDate, f.endDate)
+            +"</p><p class='location'>"+eventsApp.formatLocation(f.locations[0])
+            +"</p><p class='description'>"+f.description
+            +"</p><p class='rsvp'><a href=" + rsvpUrl + ">rsvp</a></p>"
+          );
+          markersById[f.lookupId] = marker;
         }
-        var rsvpUrl = 'https://www.hillaryclinton.com/events/view/' + f.lookupId
-        marker.bindPopup(
-          "<h2>"+f.name+"</h2><p class='time'>"
-          +eventsApp.formatDate(f.startDate, f.endDate)
-          +"</p><p class='location'>"+eventsApp.formatLocation(f.locations[0])
-          +"</p><p class='description'>"+f.description
-          +"</p><p class='rsvp'><a href=" + rsvpUrl + ">rsvp</a></p>"
-        );
-        markers.push(marker);
+        // not already visible
+        if (!markerGroupIds[f.lookupId]) {
+          markerGroupIds[f.lookupId] = true;
+          newMarkers.push(marker);
+        }
+        visible[f.lookupId] = marker;
       });
-      markerGroup.addLayers(markers);
-      map.addLayer(markerGroup);
-
+      // remove currently visible markers not in features
+      var removeMarkers = [];
+      Object.keys(markerGroupIds).forEach(function(id) {
+        if (markerGroupIds[id] && !visible[id]) {
+          removeMarkers.push(markersById[id]);
+          markerGroupIds[id] = false;
+        }
+      });
+      if (newMarkers.length || removeMarkers.length) {
+        if (newMarkers.length) {
+          markerGroup.addLayers(newMarkers);
+        }
+        if (removeMarkers.length) {
+          markerGroup.removeLayers(removeMarkers);
+        }
+      }
+      if (!map.hasLayer(markerGroup)) {
+        map.addLayer(markerGroup);
+      }
       // zoom to fit markers if the "update map button" is unchecked
-      if (document.getElementById('move-update').checked || !markers.length) return;
-      var group = new L.featureGroup(markers),
+      if (document.getElementById('move-update').checked || !visible) return;
+      var group = new L.featureGroup(_.values(visible)),
         bounds = group.getBounds();
       map.fitBounds(bounds, { maxZoom : 15});
     },
@@ -277,9 +305,6 @@ var eventsMap = function() {
           return (event.startDate < minDt || event.startDate > maxDt);
         });
 
-        markers.forEach(function(m){
-          map.removeLayer(m);
-        });
         eventsApp.addMarkers(eventsToShow);
 
         d3.select("#events").attr("class",eventsToShow.length ? "event" : "error");
