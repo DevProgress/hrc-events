@@ -170,7 +170,7 @@ var eventsMap = function() {
             +"</p><p class='rsvp'><a href=" + rsvpUrl + ">rsvp</a></p>"
           );
           marker.on('click', function(e) {
-            var el = $('.list-event[data-id="'+e.target.eventId+'"]').offset();
+            var el = $('#'+e.target.eventId).offset();
             if (el) {
               $('html, body').animate({
                 scrollTop: el.top
@@ -328,40 +328,41 @@ var eventsMap = function() {
 
         eventsToShow.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
 
-        var events = d3.select(".event-list").selectAll(".list-event").data(eventsToShow);
-        var entering = events.enter().append("div").
-          attr("class","list-event").
-          attr("data-id", function(d) { return d.lookupId; });
+        var events = d3.select(".event-list").selectAll(".list-event")
+          .data(eventsToShow, function(d) { return d.lookupId; });
+        var entering = events.enter().append("div")
+          .attr("class","list-event")
+          .attr("id", function(d) { return d.lookupId; });
         entering.append("a").attr("class","rsvp").text("RSVP");
         entering.append("h3");
         entering.append("p").attr("class","time");
         entering.append("p").attr("class","location");
         entering.append("p").attr("class","description");
         events.exit().remove();
-        events.select("h3").text(function(d){ return d.name; }).
-          attr("class", "zoom-marker");
+        events.select("h3").text(function(d){ return d.name; })
+          .attr("class", "zoom-marker");
         events.select(".time").html(function(d){
           return eventsApp.formatDate(d.startDate, d.endDate);
         });
-        events.select(".location").
-          html(function(d){
+        events.select(".location")
+          .html(function(d){
             return eventsApp.formatLocation(d.locations[0]);
-          }).
-          attr("class", "zoom-marker");
+          })
+          .attr("class", "location zoom-marker");
         events.select(".description").text(function(d){ return d.description; });
         events.select(".rsvp").attr("href",function(d){ return "https://www.hillaryclinton.com/events/view/"+d.lookupId; });
 
         $(".zoom-marker").on("click", function() {
-          var id = $(this).closest(".list-event").attr("data-id");
+          var id = $(this).closest(".list-event").attr("id");
           eventsApp.zoomToMarker(markersById[id]);
         });
         $(".list-event").hover(
           function() {
-            var id = $(this).attr("data-id");
+            var id = $(this).attr("id");
             eventsApp.highlightMarker(markersById[id]);
           },
           function() {
-            var id = $(this).attr("data-id");
+            var id = $(this).attr("id");
             eventsApp.unhighlightMarker(markersById[id]);
           }
         );
@@ -400,7 +401,13 @@ var eventsMap = function() {
         return;
       }
       marker.setIcon(activeIcon);
-      map.setView(marker.getLatLng(), 13); // clustering disabled
+      var parent = markerGroup.getVisibleParent(marker);
+      if (parent === marker) {  // single marker
+        map.setView(marker.getLatLng(), 13); // clustering disabled
+      } else if (parent) { // cluster group
+        markerGroup.zoomToShowLayer(marker);
+        parent.spiderfy();
+      }
       if (activeMarker) {
           activeMarker.setIcon(standardIcon);
       }
