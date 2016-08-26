@@ -21,6 +21,7 @@ var eventsMap = function() {
     }),
     markerGroupIds = {},
     activeMarker = null,
+    popupMarker = null,
     keyIndex = -1,
     xhr,
     searchedLocation,
@@ -176,6 +177,12 @@ var eventsMap = function() {
                 scrollTop: el.top
               }, 1000);
             }
+          });
+          marker.on('popupopen', function(/*e*/) {
+            eventsApp.setPopupMarker(this);
+          });
+          marker.on('popupclose', function(/*e*/) {
+            eventsApp.setPopupMarker(null);
           });
           markersById[f.lookupId] = marker;
         }
@@ -396,7 +403,17 @@ var eventsMap = function() {
       activeMarker = null;
     },
 
+    setPopupMarker: function(marker) {
+      popupMarker = marker;
+    },
+
     zoomToMarker: function(marker) {
+      // if there's a marker with open popup, close it
+      // unless it's the one we're zooming to
+      if (popupMarker && (!marker || marker.eventId !== popupMarker.eventId) ) {
+        popupMarker.closePopup();
+        popupMarker = null;
+      }
       if (!marker) {
         return;
       }
