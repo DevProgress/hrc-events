@@ -389,6 +389,8 @@ var eventsMap = function() {
       var parent = markerGroup.getVisibleParent(marker);
       if (parent === marker) {  // single marker
         marker.setIcon(activeIcon);
+        // bring this marker to the top
+        marker.setZIndexOffset(1000);
       } else if (parent) { // cluster group
         $(parent._icon).addClass('marker-highlight');
       }
@@ -400,6 +402,8 @@ var eventsMap = function() {
       }
       $('.leaflet-marker-icon').removeClass('marker-highlight');
       marker.setIcon(standardIcon);
+      // put it back to original z-index
+      marker.setZIndexOffset(-1000);
       activeMarker = null;
     },
 
@@ -421,11 +425,15 @@ var eventsMap = function() {
       var parent = markerGroup.getVisibleParent(marker);
       if (parent === marker) {  // single marker
         map.setView(marker.getLatLng(), 13); // clustering disabled
+        // bring this marker to the top
+        marker.setZIndexOffset(1000);
       } else if (parent) { // cluster group
         markerGroup.zoomToShowLayer(marker);
         parent.spiderfy();
       }
       if (activeMarker) {
+          // put it back to original z-index
+          activeMarker.setZIndexOffset(-1000);
           activeMarker.setIcon(standardIcon);
       }
       marker.setIcon(activeIcon);
