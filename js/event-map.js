@@ -4,9 +4,24 @@ var eventsMap = function() {
     markersById = {},
     markerGroup = L.markerClusterGroup({
       showCoverageOnHover: false,
-      animate: false
+      animate: false,
+      disableClusteringAtZoom: 13
+    }),
+    standardIcon = L.icon({
+      iconUrl: 'images/octicon-location.png',
+      iconSize:     [32, 32], // size of the icon
+      iconAnchor:   [16, 32], // point of the icon which will correspond to marker's location
+      popupAnchor:  [0, -36] // point from which the popup should open relative to the iconAnchor
+    }),
+    activeIcon = L.icon({
+      iconUrl: 'images/octicon-location-active.png',
+      iconSize:     [32, 32], // size of the icon
+      iconAnchor:   [16, 32], // point of the icon which will correspond to marker's location
+      popupAnchor:  [0, -36] // point from which the popup should open relative to the iconAnchor
     }),
     markerGroupIds = {},
+    activeMarker = null,
+    popupMarker = null,
     keyIndex = -1,
     xhr,
     searchedLocation,
@@ -141,13 +156,8 @@ var eventsMap = function() {
         var marker = markersById[f.lookupId];
         // make new marker if not already created
         if (!marker) {
-          var newIcon = L.icon({
-            iconUrl: 'images/octicon-location.png',
-            iconSize:     [32, 32], // size of the icon
-            iconAnchor:   [16, 32], // point of the icon which will correspond to marker's location
-            popupAnchor:  [0, -36] // point from which the popup should open relative to the iconAnchor
-          });
-          marker = L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude), {icon: newIcon});
+          marker = L.marker(L.latLng(f.locations[0].latitude, f.locations[0].longitude), {icon: standardIcon});
+          marker.eventId = f.lookupId;
           // DEBUGGING RE: EVENT STATUS
           if (f.locations[0].status !== 'verified' || f.status !== 'confirmed') {
             //console.log(f)
@@ -160,6 +170,20 @@ var eventsMap = function() {
             +"</p><p class='description'>"+f.description
             +"</p><p class='rsvp'><a href=" + rsvpUrl + ">rsvp</a></p>"
           );
+          marker.on('click', function(e) {
+            var el = $('#'+e.target.eventId).offset();
+            if (el) {
+              $('html, body').animate({
+                scrollTop: el.top
+              }, 1000);
+            }
+          });
+          marker.on('popupopen', function(/*e*/) {
+            eventsApp.setPopupMarker(this);
+          });
+          marker.on('popupclose', function(/*e*/) {
+            eventsApp.setPopupMarker(null);
+          });
           markersById[f.lookupId] = marker;
         }
         // not already visible
@@ -311,25 +335,109 @@ var eventsMap = function() {
 
         eventsToShow.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
 
-        var events = d3.select(".event-list").selectAll(".list-event").data(eventsToShow);
-        var entering = events.enter().append("div").attr("class","list-event");
+        var events = d3.select(".event-list").selectAll(".list-event")
+          .data(eventsToShow, function(d) { return d.lookupId; });
+        var entering = events.enter().append("div")
+          .attr("class","list-event")
+          .attr("id", function(d) { return d.lookupId; });
         entering.append("a").attr("class","rsvp").text("RSVP");
         entering.append("h3");
         entering.append("p").attr("class","time");
         entering.append("p").attr("class","location");
         entering.append("p").attr("class","description");
         events.exit().remove();
-        events.select("h3").text(function(d){ return d.name; });
+        events.select("h3").text(function(d){ return d.name; })
+          .attr("class", "zoom-marker");
         events.select(".time").html(function(d){
           return eventsApp.formatDate(d.startDate, d.endDate);
         });
-        events.select(".location").html(function(d){
-          return eventsApp.formatLocation(d.locations[0]);
-        });
+        events.select(".location")
+          .html(function(d){
+            return eventsApp.formatLocation(d.locations[0]);
+          })
+          .attr("class", "location zoom-marker");
         events.select(".description").text(function(d){ return d.description; });
         events.select(".rsvp").attr("href",function(d){ return "https://www.hillaryclinton.com/events/view/"+d.lookupId; });
 
+        $(".zoom-marker").on("click", function() {
+          var id = $(this).closest(".list-event").attr("id");
+          eventsApp.zoomToMarker(markersById[id]);
+        });
+        $(".list-event").hover(
+          function() {
+            var id = $(this).attr("id");
+            eventsApp.highlightMarker(markersById[id]);
+          },
+          function() {
+            var id = $(this).attr("id");
+            eventsApp.unhighlightMarker(markersById[id]);
+          }
+        );
         $("#dateSlider").dateRangeSlider("resize");
+    },
+
+    highlightMarker: function(marker) {
+      // reset previously active marker icon
+      if (activeMarker) {
+        activeMarker.setIcon(standardIcon);
+      }
+      $('.leaflet-marker-icon').removeClass('marker-highlight');
+      activeMarker = marker;
+      if (!marker) {
+        return;
+      }
+      var parent = markerGroup.getVisibleParent(marker);
+      if (parent === marker) {  // single marker
+        marker.setIcon(activeIcon);
+        // bring this marker to the top
+        marker.setZIndexOffset(1000);
+      } else if (parent) { // cluster group
+        $(parent._icon).addClass('marker-highlight');
+      }
+    },
+
+    unhighlightMarker: function(marker) {
+      if (!marker) {
+        return;
+      }
+      $('.leaflet-marker-icon').removeClass('marker-highlight');
+      marker.setIcon(standardIcon);
+      // put it back to original z-index
+      marker.setZIndexOffset(-1000);
+      activeMarker = null;
+    },
+
+    setPopupMarker: function(marker) {
+      popupMarker = marker;
+    },
+
+    zoomToMarker: function(marker) {
+      // if there's a marker with open popup, close it
+      // unless it's the one we're zooming to
+      if (popupMarker && (!marker || marker.eventId !== popupMarker.eventId) ) {
+        popupMarker.closePopup();
+        popupMarker = null;
+      }
+      if (!marker) {
+        return;
+      }
+      marker.setIcon(activeIcon);
+      var parent = markerGroup.getVisibleParent(marker);
+      if (parent === marker) {  // single marker
+        map.setView(marker.getLatLng(), 13); // clustering disabled
+        // bring this marker to the top
+        marker.setZIndexOffset(1000);
+      } else if (parent) { // cluster group
+        markerGroup.zoomToShowLayer(marker);
+        parent.spiderfy();
+      }
+      if (activeMarker) {
+          // put it back to original z-index
+          activeMarker.setZIndexOffset(-1000);
+          activeMarker.setIcon(standardIcon);
+      }
+      marker.setIcon(activeIcon);
+      activeMarker = marker;
     },
 
     doEventSearch : function(lat, lng, radius) {

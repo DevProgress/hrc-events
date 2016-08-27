@@ -222,6 +222,9 @@ html, body {
   font-size: 22px;
   margin-bottom: 12px;
 }
+.list-event h3, .list-event .location {
+  cursor: pointer;
+}
 .list-event .rsvp,
 .leaflet-popup-content .rsvp a {
   float: right;
@@ -277,6 +280,12 @@ html, body {
   font-weight: bold;
   font-size: 18px;
 }
+
+.marker-highlight, .marker-highlight.marker-cluster-small {
+  background-color: #254da3;
+  border-radius: 20px;
+}
+
 /*********** date slider styles ***********/
 .ui-rangeSlider-label {
   background-image: none;
