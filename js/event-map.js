@@ -29,7 +29,8 @@ var eventsMap = function() {
     earliestTime = encodeURIComponent(currentDate.toISOString());
     allEvents = [],
     minDate = new Date(),
-    maxDate = new Date(minDate.getTime()+(28*1000*60*60*24));
+    maxDate = new Date(minDate.getTime()+(28*1000*60*60*24)),
+    searchInput = 'search-input';
 
   var iso = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ"),
     wholeDate = d3.time.format("%m/%d %I:%M %p"),
@@ -69,6 +70,9 @@ var eventsMap = function() {
           .classed("disabled",document.getElementById('move-update').checked);
       });
       d3.select("#search-input").on("keyup",function(){
+        eventsApp.processKeyup(d3.event);
+      });
+      d3.select("#mobile-search-input").on("keyup",function(){
         eventsApp.processKeyup(d3.event);
       });
       d3.select(".clear-button").on("click",function(){
@@ -171,12 +175,7 @@ var eventsMap = function() {
             +"</p><p class='rsvp'><a href=" + rsvpUrl + ">rsvp</a></p>"
           );
           marker.on('click', function(e) {
-            var el = $('#'+e.target.eventId).offset();
-            if (el) {
-              $('html, body').animate({
-                scrollTop: el.top
-              }, 1000);
-            }
+            eventsApp.clickMarker(e.target, e.originalEvent.clientY);
           });
           marker.on('popupopen', function(/*e*/) {
             eventsApp.setPopupMarker(this);
@@ -218,19 +217,42 @@ var eventsMap = function() {
         bounds = group.getBounds();
       map.fitBounds(bounds, { maxZoom : 15});
     },
+    clickMarker: function(marker, clickY) {
+      if (document.documentElement.clientWidth <= 720) {
+        // scroll up so content doesn't overlap
+        if (clickY > document.documentElement.clientHeight*2/3) {
+          map.panTo(marker.getLatLng());
+        }
+        var html = $('#'+marker.eventId).html();
+        $('#detail').html(html);
+        $('#detail').show();
+        eventsApp.highlightMarker(marker);
+      } else {
+        var el = $('#'+marker.eventId).offset();
+        if (el) {
+          $('html, body').animate({
+            scrollTop: el.top
+          }, 1000);
+        }
+      }
+    },
     getRadius : function() {
       var sel = document.getElementById('radius-select');
       return sel.options[sel.selectedIndex].value;
     },
     processKeyup : function(event) {
-      var inputDiv = document.getElementById("search-input");
+      searchInput = event.target.id;
+      var inputDiv = document.getElementById(searchInput);
       var val = inputDiv.value;
 
       d3.select(".clear-button").style("display","inline-block");
+      if (val && val.length) {
+        d3.select(".icon-search").style("color", "#01a9e0");
+      }
 
-      if (!val.length) {
+      if (!val || !val.length) {
+        d3.select(".icon-search").style("color", "#333333");
         eventsApp.clearSearchBox();
-
       } else if (event.keyCode == 40) { //arrow down
         keyIndex = Math.min(keyIndex+1, d3.selectAll(".suggestion")[0].length-1);
         eventsApp.selectSuggestion();
@@ -257,7 +279,7 @@ var eventsMap = function() {
       var currentList = d3.selectAll(".suggestion");
       currentList.each(function(d, i){
         if (i == keyIndex) {
-          document.getElementById("search-input").value = d.name ? d.name : d.properties.label;
+          document.getElementById(searchInput).value = d.name ? d.name : d.properties.label;
         }
       }).classed("selected",function(d,i){ return i == keyIndex; });
     },
@@ -278,20 +300,24 @@ var eventsMap = function() {
       });
     },
     showSuggestions : function(data) {
-      var suggestion = d3.select(".autocomplete")
+      var selector = ".autocomplete";
+      if (searchInput === "mobile-search-input") {
+        selector += ".mobile";
+      }
+      var suggestion = d3.select(selector)
         .selectAll(".suggestion").data(data);
       suggestion.enter().append("div").attr("class","suggestion");
       suggestion.exit().remove();
       suggestion.text(function(d){ return d.properties.label; })
         .on("click",function(d){
           var name = d.name ? d.name : d.properties.label;
-          document.getElementById("search-input").value = name;
+          document.getElementById(searchInput).value = name;
           eventsApp.onSubmit(name);
         });
     },
     clearSearchBox : function() {
       // triggered by "x" click or an empty search box
-      document.getElementById("search-input").value = "";
+      document.getElementById(searchInput).value = "";
       d3.select(".clear-button").style("display","none");
       d3.selectAll(".suggestion").remove();
     },
