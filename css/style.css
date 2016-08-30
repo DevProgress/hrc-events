@@ -161,7 +161,7 @@ html, body {
   top: 10px;
   height: 24px;
   width: 24px;
-  padding-top: 4px;
+  padding-top: 4px;\
 }
 #searchbox .clear-button:hover,
 #searchbox .clear-button:focus {
@@ -366,4 +366,68 @@ html, body {
 
 .ui-rangeSlider-rightHandle {
   border-right: 3px solid #000;
+}
+
+#mobile {
+  display: none;
+}
+
+/*********** mobile ***********/
+@media all and (max-width: 720px) {
+  #mobile {
+    display: block;
+  }
+  .search-mobile {
+    position: relative;
+    background: #fff;
+    box-sizing: border-box;
+    width: 75%;
+    height: 52px;
+    border-bottom: 1px solid transparent;
+    padding: 12px;
+    top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+  }
+  .search-mobile input {
+    border: 0;
+    display: inline-block;
+    font-size: 14px;
+    width: 80%;
+    vertical-align: middle;
+  }
+  .search-mobile .icon-search {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    vertical-align: bottom;
+    color: #333;
+    position: absolute;
+    right: 20px;
+  }
+  .search-mobile .icon-search.active {
+    color: #254da3;
+  }
+  .search-mobile .search-box {
+    display: block;
+    margin: 0;
+    vertical-align: baseline;
+    background: transparent;
+  }
+  .autocomplete {
+    margin-top: 15px;
+    margin-left: -12px;
+  }
+  #events .header, #events .state {
+    display: none;
+  }
+  #events {
+    display: none; /* for now FIXME */
+  }
+  #map {
+    width: 100%;
+  }
+  #map-search {
+    display: none;
+  }
 }
