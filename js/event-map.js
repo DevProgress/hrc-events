@@ -219,8 +219,9 @@ var eventsMap = function() {
     },
     clickMarker: function(marker, clickY) {
       if (document.documentElement.clientWidth <= 720) {
-        // scroll up so content doesn't overlap
-        if (clickY > document.documentElement.clientHeight*2/3) {
+        // if marker is outside of middle third, center it
+        var position = clickY/document.documentElement.clientHeight;
+        if (position < 0.33 || position > 0.6) {
           map.panTo(marker.getLatLng());
         }
         var html = $('#'+marker.eventId).html();
