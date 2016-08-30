@@ -379,12 +379,12 @@ html, body {
   }
   .search-mobile {
     position: relative;
-    background: #fff;
+    background: #fff url("../images/hillary-logo.png") no-repeat scroll 2% 50% / 16px 16px;
     box-sizing: border-box;
     width: 75%;
     height: 52px;
     border-bottom: 1px solid transparent;
-    padding: 12px;
+    padding: 12px 12px 12px 30px;
     top: 10px;
     margin-left: auto;
     margin-right: auto;
@@ -428,6 +428,9 @@ html, body {
     width: 100%;
   }
   #map-search {
+    display: none;
+  }
+  .leaflet-popup-pane {
     display: none;
   }
 }
