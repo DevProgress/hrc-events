@@ -175,12 +175,7 @@ var eventsMap = function() {
             +"</p><p class='rsvp'><a href=" + rsvpUrl + ">rsvp</a></p>"
           );
           marker.on('click', function(e) {
-            var el = $('#'+e.target.eventId).offset();
-            if (el) {
-              $('html, body').animate({
-                scrollTop: el.top
-              }, 1000);
-            }
+            eventsApp.clickMarker(e.target, e.originalEvent.clientY);
           });
           marker.on('popupopen', function(/*e*/) {
             eventsApp.setPopupMarker(this);
@@ -221,6 +216,25 @@ var eventsMap = function() {
       var group = new L.featureGroup(_.values(visible)),
         bounds = group.getBounds();
       map.fitBounds(bounds, { maxZoom : 15});
+    },
+    clickMarker: function(marker, clickY) {
+      if (document.documentElement.clientWidth <= 720) {
+        // scroll up so content doesn't overlap
+        if (clickY > document.documentElement.clientHeight*2/3) {
+          map.panTo(marker.getLatLng());
+        }
+        var html = $('#'+marker.eventId).html();
+        $('#detail').html(html);
+        $('#detail').show();
+        eventsApp.highlightMarker(marker);
+      } else {
+        var el = $('#'+marker.eventId).offset();
+        if (el) {
+          $('html, body').animate({
+            scrollTop: el.top
+          }, 1000);
+        }
+      }
     },
     getRadius : function() {
       var sel = document.getElementById('radius-select');
