@@ -30,6 +30,7 @@ var eventsMap = function() {
     allEvents = [],
     minDate = new Date(),
     maxDate = new Date(minDate.getTime()+(28*1000*60*60*24)),
+    setup = false,
     searchInput = 'search-input';
 
   var iso = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ"),
@@ -53,7 +54,7 @@ var eventsMap = function() {
       // map.fitBounds([[48,-123], [28,-70]]);
 
       map.on("moveend",function(){
-        if (!document.getElementById('move-update').checked) return;
+        if (!eventsApp.moveUpdate()) return;
         var meters = map.getBounds().getNorthEast().distanceTo(map.getBounds().getSouthWest()),
           miles = meters*0.000621371,
           center = map.getCenter();
@@ -78,6 +79,9 @@ var eventsMap = function() {
       d3.select(".clear-button").on("click",function(){
         eventsApp.clearSearchBox();
       });
+    },
+    moveUpdate: function() {
+      return $('#move-update:visible').length === 0 || $('#move-update').is(':checked');
     },
     tryForAutoLocation : function() {
       if (!navigator.geolocation) return;
@@ -212,10 +216,11 @@ var eventsMap = function() {
         map.addLayer(markerGroup);
       }
       // zoom to fit markers if the "update map button" is unchecked
-      if (document.getElementById('move-update').checked || !visible) return;
+      if (setup && (eventsApp.moveUpdate() || !visible)) return;
       var group = new L.featureGroup(_.values(visible)),
         bounds = group.getBounds();
       map.fitBounds(bounds, { maxZoom : 15});
+      setup = true;
     },
     clickMarker: function(marker, clickY) {
       if (document.documentElement.clientWidth <= 720) {
