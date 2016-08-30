@@ -415,8 +415,8 @@ html, body {
     background: transparent;
   }
   .autocomplete {
-    margin-top: 15px;
-    margin-left: -12px;
+    margin-top: 18px;
+    margin-left: -30px;
   }
   #events .header, #events .state {
     display: none;
