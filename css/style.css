@@ -441,4 +441,8 @@ html, body {
     background-color: #fff;
     overflow: scroll;
   }
+  .list-event .rsvp {
+    font-size:22px;
+    margin-left:12px;
+  }
 }
