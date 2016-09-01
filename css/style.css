@@ -461,8 +461,9 @@ html, body {
     display: inline-block;
     margin: 0;
     padding: 10px;
-    border: 1px solid #254da3;
-    overflow: scroll;
+    border-left: 1px solid #254da3;
+    border-right: 1px solid #254da3;
+    vertical-align: top;
   }
 
   .list-event .rsvp {

@@ -81,56 +81,65 @@ var eventsMap = function() {
         eventsApp.clearSearchBox();
       });
       $("#detail").swipe({
+        allowPageScroll: 'vertical',
         swipeStatus: function(event, phase, direction, distance, duration) {
           eventsApp.swipe(event, phase, direction, distance, duration);
         },
-        tap: function(event) {
-          // TODO:
-          console.log("tap ", $(event.target).attr("data-id"));
+        tap: function(/*event*/) {
+          $("#detail").hide();
         }
       });
     },
     swipe: function(event, phase, direction, distance, duration) {
-        // TODO: slide down
-        if (direction === "down") {
-          $("#detail").hide();
-          return;
-        }
-        if (direction === "up") {
-          // scroll content down
-          // TODO:
-          console.log("scroll content");
-          return;
-        }
+        // from https://github.com/mattbryson/TouchSwipe-Jquery-Plugin/issues/275
+        $(this).swipe("option", "preventDefaultEvents", (direction === "up" || direction === "down"));
         var width = document.documentElement.clientWidth;
         var eventId = $(event.target).closest(".list-event").attr("data-id");
         var index = markerIds.indexOf(eventId);
         var sign = direction === "left" ? 1 : -1;
 
+        if (direction === "down" || direction === "up") {
+          if (phase === "move") {
+            var ev = $(event.target).closest(".list-event");
+            distance = direction === "up" ? -distance : distance;
+            ev.css("transform", "translate(0px, "+distance+"px)");
+          }
+          return;
+        }
+
         if (phase === "move") {
-          return eventsApp.scrollDetails(width*index + distance*sign, 0);
+          return eventsApp.scrollDetails(width*index + distance*sign, 0, 0);
         }
         if (phase === "cancel") {
-          return eventsApp.scrollDetails(width*index, 500);
+          return eventsApp.scrollDetails(width*index, 0, 500);
         }
         if (phase === "end") {
           // swipe left on last or right on first: reset
           if ((index === markerIds.length-1 && direction === "left") ||
               (index === 0 && direction === "right")) {
-            return eventsApp.scrollDetails(width*index);
+            eventsApp.scrollDetails(width*index, 0, 0);
+          } else {
+            eventsApp.scrollDetails(width*index + width*sign, 0, 0);
+            var marker = markersById[markerIds[index+sign]];
+            var prevMarker = markersById[markerIds[index]];
+            if (marker) {
+              eventsApp.zoomToMarker(marker);
+            } else if (prevMarker) {
+              eventsApp.unhighlightMarker(prevMarker);
+            }
           }
-          return eventsApp.scrollDetails(width*index + width*sign, 0);
         }
     },
 
     /**
      * update the position of the list-event on drag
      */
-    scrollDetails: function(distance, duration) {
+    scrollDetails: function(distanceX, distanceY, duration) {
         $("#detail-contents").css("transition-duration", (duration / 1000).toFixed(1) + "s");
         // inverse the number we set in the css
-        var value = (distance < 0 ? "" : "-") + Math.abs(distance).toString();
-        $("#detail-contents").css("transform", "translate(" + value + "px,0)");
+        var x = (distanceX < 0 ? "" : "-") + Math.abs(distanceX).toString();
+        var y = distanceY;
+        $("#detail-contents").css("transform", "translate("+x+"px, "+y+"px)");
     },
 
     moveUpdate: function() {
@@ -229,7 +238,7 @@ var eventsMap = function() {
             +eventsApp.formatDate(f.startDate, f.endDate)
             +"</p><p class='location'>"+eventsApp.formatLocation(f.locations[0])
             +"</p><p class='description'>"+f.description
-            +"</p><p class='rsvp'><a href=" + rsvpUrl + ">rsvp</a></p>"
+            +"</p><p class='rsvp noSwipe'><a href=" + rsvpUrl + ">rsvp</a></p>"
           );
           marker.on('click', function(e) {
             eventsApp.clickMarker(e.target, e.originalEvent.clientY);
@@ -430,7 +439,7 @@ var eventsMap = function() {
         var entering = events.enter().append("div")
           .attr("class","list-event")
           .attr("data-id", function(d) { return d.lookupId; });
-        entering.append("a").attr("class","rsvp").text("RSVP");
+        entering.append("a").attr("class","rsvp noSwipe").text("RSVP");
         entering.append("h3");
         entering.append("p").attr("class","time");
         entering.append("p").attr("class","location");
@@ -449,7 +458,6 @@ var eventsMap = function() {
         events.select(".description").text(function(d){ return d.description; });
         events.select(".rsvp").attr("href",function(d){ return "https://www.hillaryclinton.com/events/view/"+d.lookupId; });
         var width = document.documentElement.clientWidth;
-        // TODO: where does 417width come from (vs 375)
         $("#detail-contents").outerWidth(width*eventsToShow.length);
         $("#detail-contents").outerHeight(width*document.documentElement.clientHeight);
         $("#detail-contents .list-event").outerWidth(width);
