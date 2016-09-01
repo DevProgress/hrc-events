@@ -433,16 +433,43 @@ html, body {
   .leaflet-popup-pane {
     display: none;
   }
+
   #detail {
     height: 40%;
+    width: 100%;
     position: absolute;
     bottom: 0;
-    display: none;
     background-color: #fff;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    display: none;
+  }
+
+  #detail .event-list {
+    margin: 0;
+  }
+
+  #detail-contents {
+    overflow: hidden;
+    transition-property: transform;
+    transition-duration: 0.5s;
+    transition-timing-function: ease-out;
+  }
+
+  #detail-contents .list-event {
+    display: inline-block;
+    margin: 0;
+    padding: 10px;
+    border: 1px solid #254da3;
     overflow: scroll;
   }
+
   .list-event .rsvp {
     font-size:22px;
     margin-left:12px;
+  }
+  .list-event h3, .list-event .location {
+    cursor: default;
   }
 }

@@ -1,6 +1,7 @@
 var eventsMap = function() {
   var map,
     markers = [],
+    markerIds = [],
     markersById = {},
     markerGroup = L.markerClusterGroup({
       showCoverageOnHover: false,
@@ -79,7 +80,59 @@ var eventsMap = function() {
       d3.select(".clear-button").on("click",function(){
         eventsApp.clearSearchBox();
       });
+      $("#detail").swipe({
+        swipeStatus: function(event, phase, direction, distance, duration) {
+          eventsApp.swipe(event, phase, direction, distance, duration);
+        },
+        tap: function(event) {
+          // TODO:
+          console.log("tap ", $(event.target).attr("data-id"));
+        }
+      });
     },
+    swipe: function(event, phase, direction, distance, duration) {
+        // TODO: slide down
+        if (direction === "down") {
+          $("#detail").hide();
+          return;
+        }
+        if (direction === "up") {
+          // scroll content down
+          // TODO:
+          console.log("scroll content");
+          return;
+        }
+        var width = document.documentElement.clientWidth;
+        var eventId = $(event.target).closest(".list-event").attr("data-id");
+        var index = markerIds.indexOf(eventId);
+        var sign = direction === "left" ? 1 : -1;
+
+        if (phase === "move") {
+          return eventsApp.scrollDetails(width*index + distance*sign, 0);
+        }
+        if (phase === "cancel") {
+          return eventsApp.scrollDetails(width*index, 500);
+        }
+        if (phase === "end") {
+          // swipe left on last or right on first: reset
+          if ((index === markerIds.length-1 && direction === "left") ||
+              (index === 0 && direction === "right")) {
+            return eventsApp.scrollDetails(width*index);
+          }
+          return eventsApp.scrollDetails(width*index + width*sign, 0);
+        }
+    },
+
+    /**
+     * update the position of the list-event on drag
+     */
+    scrollDetails: function(distance, duration) {
+        $("#detail-contents").css("transition-duration", (duration / 1000).toFixed(1) + "s");
+        // inverse the number we set in the css
+        var value = (distance < 0 ? "" : "-") + Math.abs(distance).toString();
+        $("#detail-contents").css("transform", "translate(" + value + "px,0)");
+    },
+
     moveUpdate: function() {
       return $('#move-update:visible').length === 0 || $('#move-update').is(':checked');
     },
@@ -224,15 +277,18 @@ var eventsMap = function() {
     },
     clickMarker: function(marker, clickY) {
       if (document.documentElement.clientWidth <= 720) {
+        var width = document.documentElement.clientWidth;
         // if marker is outside of middle third, center it
         var position = clickY/document.documentElement.clientHeight;
         if (position < 0.33 || position > 0.6) {
           map.panTo(marker.getLatLng());
         }
-        var html = $('#'+marker.eventId).html();
-        $('#detail').html(html);
-        $('#detail').show();
         eventsApp.highlightMarker(marker);
+
+        // get marker index
+        var idx = markerIds.indexOf(marker.eventId);
+        $("#detail").show();
+        $("#detail").attr("transform", "translate(-"+idx*width+", 0px)");
       } else {
         var el = $('#'+marker.eventId).offset();
         if (el) {
@@ -360,18 +416,20 @@ var eventsMap = function() {
           }
           return (event.startDate < minDt || event.startDate > maxDt);
         });
-
+        markerIds = eventsToShow.map(function(ev) {
+          return ev.lookupId;
+        });
         eventsApp.addMarkers(eventsToShow);
 
         d3.select("#events").attr("class",eventsToShow.length ? "event" : "error");
 
         eventsToShow.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
 
-        var events = d3.select(".event-list").selectAll(".list-event")
+        var events = d3.selectAll(".event-list").selectAll(".list-event")
           .data(eventsToShow, function(d) { return d.lookupId; });
         var entering = events.enter().append("div")
           .attr("class","list-event")
-          .attr("id", function(d) { return d.lookupId; });
+          .attr("data-id", function(d) { return d.lookupId; });
         entering.append("a").attr("class","rsvp").text("RSVP");
         entering.append("h3");
         entering.append("p").attr("class","time");
@@ -390,6 +448,11 @@ var eventsMap = function() {
           .attr("class", "location zoom-marker");
         events.select(".description").text(function(d){ return d.description; });
         events.select(".rsvp").attr("href",function(d){ return "https://www.hillaryclinton.com/events/view/"+d.lookupId; });
+        var width = document.documentElement.clientWidth;
+        // TODO: where does 417width come from (vs 375)
+        $("#detail-contents").outerWidth(width*eventsToShow.length);
+        $("#detail-contents").outerHeight(width*document.documentElement.clientHeight);
+        $("#detail-contents .list-event").outerWidth(width);
 
         $(".zoom-marker").on("click", function() {
           var id = $(this).closest(".list-event").attr("id");
@@ -500,4 +563,4 @@ var eventsMap = function() {
   };
   eventsApp.throttledDoSuggestion = _.throttle(eventsApp.doSuggestion, 50);
   return eventsApp;
-}
+};
