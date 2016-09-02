@@ -397,13 +397,17 @@ html, body {
     width: 80%;
     vertical-align: middle;
   }
-  .search-mobile .icon-search {
+  .search-mobile .icon {
     margin-top: 5px;
     margin-bottom: 5px;
     vertical-align: bottom;
     color: #333;
     position: absolute;
     right: 20px;
+  }
+
+  .search-mobile .icon-x {
+    display: none;
   }
   .search-mobile .icon-search.active {
     color: #254da3;

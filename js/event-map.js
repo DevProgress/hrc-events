@@ -77,7 +77,7 @@ var eventsMap = function() {
       d3.select("#mobile-search-input").on("keyup",function(){
         eventsApp.processKeyup(d3.event);
       });
-      d3.select(".clear-button").on("click",function(){
+      d3.selectAll(".clear-button").on("click",function(){
         eventsApp.clearSearchBox();
       });
       $("#detail").swipe({
@@ -147,7 +147,6 @@ var eventsMap = function() {
     },
     tryForAutoLocation : function() {
       if (!navigator.geolocation) return;
-
       navigator.geolocation.getCurrentPosition(function(position) {
           searchedLocation = [position.coords.latitude, position.coords.longitude];
           eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius());
@@ -318,11 +317,13 @@ var eventsMap = function() {
 
       d3.select(".clear-button").style("display","inline-block");
       if (val && val.length) {
-        d3.select(".icon-search").style("color", "#01a9e0");
+        d3.select("#mobile .icon-search").style("display", "none");
+        d3.select("#mobile .icon-x").style("display", "inline-block");
       }
 
       if (!val || !val.length) {
-        d3.select(".icon-search").style("color", "#333333");
+        d3.select("#mobile .icon-search").style("color", "#333333");
+        d3.select("#mobile .icon-x").style("display", "none");
         eventsApp.clearSearchBox();
       } else if (event.keyCode == 40) { //arrow down
         keyIndex = Math.min(keyIndex+1, d3.selectAll(".suggestion")[0].length-1);
@@ -561,7 +562,6 @@ var eventsMap = function() {
         // bump the radius until an event is found within 150mi
         if (allEvents.length < 1 && radius <= 150) {
           radius = radius*2;
-          console.log('too small - bumping to ' + radius + ' miles');
           eventsApp.doEventSearch(lat, lng, radius);
           return;
         }
