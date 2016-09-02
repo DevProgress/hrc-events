@@ -32,6 +32,7 @@ var eventsMap = function() {
     minDate = new Date(),
     maxDate = new Date(minDate.getTime()+(28*1000*60*60*24)),
     setup = false,
+    cancelEventSearch = false,
     searchInput = 'search-input';
 
   var iso = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ"),
@@ -56,6 +57,10 @@ var eventsMap = function() {
 
       map.on("moveend",function(){
         if (!eventsApp.moveUpdate()) return;
+        if (cancelEventSearch) {
+          cancelEventSearch = true;  // zoom next time
+          return;
+        }
         var meters = map.getBounds().getNorthEast().distanceTo(map.getBounds().getSouthWest()),
           miles = meters*0.000621371,
           center = map.getCenter();
@@ -89,6 +94,9 @@ var eventsMap = function() {
           $("#detail").hide();
         }
       });
+    },
+    isSmallScreen: function() {
+      return document.documentElement.clientWidth <= 720;
     },
     swipe: function(event, phase, direction, distance, duration) {
         // from https://github.com/mattbryson/TouchSwipe-Jquery-Plugin/issues/275
@@ -277,14 +285,17 @@ var eventsMap = function() {
         map.addLayer(markerGroup);
       }
       // zoom to fit markers if the "update map button" is unchecked
-      if (setup && (eventsApp.moveUpdate() || !visible)) return;
+      // always zoom to markers on mobile search
+      if (setup && (eventsApp.moveUpdate() || !visible)) {
+        return;
+      }
       var group = new L.featureGroup(_.values(visible)),
         bounds = group.getBounds();
       map.fitBounds(bounds, { maxZoom : 15});
       setup = true;
     },
     clickMarker: function(marker, clickY) {
-      if (document.documentElement.clientWidth <= 720) {
+      if (eventsApp.isSmallScreen()) {
         var width = document.documentElement.clientWidth;
         // if marker is outside of middle third, center it
         var position = clickY/document.documentElement.clientHeight;
@@ -413,6 +424,7 @@ var eventsMap = function() {
           var selected = json.features[0],
             searchedLocation = [selected.geometry.coordinates[1], selected.geometry.coordinates[0]];
 
+          map.setView(searchedLocation, 12);
           eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
         });
     },
