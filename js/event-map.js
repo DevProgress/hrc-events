@@ -464,16 +464,16 @@ var eventsMap = function() {
         $("#detail-contents .list-event").outerWidth(width);
 
         $(".zoom-marker").on("click", function() {
-          var id = $(this).closest(".list-event").attr("id");
+          var id = $(this).closest(".list-event").attr("data-id");
           eventsApp.zoomToMarker(markersById[id]);
         });
         $(".list-event").hover(
           function() {
-            var id = $(this).attr("id");
+            var id = $(this).attr("data-id");
             eventsApp.highlightMarker(markersById[id]);
           },
           function() {
-            var id = $(this).attr("id");
+            var id = $(this).attr("data-id");
             eventsApp.unhighlightMarker(markersById[id]);
           }
         );
