@@ -214,6 +214,9 @@ html, body {
   padding: 20px;
   border-top: 2px solid #eee;
 }
+.list-event.selected {
+  border: 2px dotted #254da3;
+}
 .list-event:nth-child(odd) {
   background: #f7f7f7;
 }
@@ -465,9 +468,16 @@ html, body {
     display: inline-block;
     margin: 0;
     padding: 10px;
-    border-left: 1px solid #254da3;
-    border-right: 1px solid #254da3;
+    border-right: 1px dotted #254da3;
     vertical-align: top;
+  }
+
+  #detail-contents .list-event:first-child {
+    border-left: 5px solid #254da3;
+  }
+
+  #detail-contents .list-event:last-child {
+    border-right: 5px solid #254da3;
   }
 
   .list-event .rsvp {

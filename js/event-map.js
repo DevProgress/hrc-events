@@ -1,7 +1,6 @@
 var eventsMap = function() {
   var map,
     markers = [],
-    markerIds = [],
     markersById = {},
     markerGroup = L.markerClusterGroup({
       showCoverageOnHover: false,
@@ -55,12 +54,14 @@ var eventsMap = function() {
       // disable default state to preference user location:
       // map.fitBounds([[48,-123], [28,-70]]);
 
-      map.on("moveend",function(){
+      map.on("dragend",function(){
         if (!eventsApp.moveUpdate()) return;
+        /*
         if (cancelEventSearch) {
           cancelEventSearch = true;  // zoom next time
           return;
         }
+        */
         var meters = map.getBounds().getNorthEast().distanceTo(map.getBounds().getSouthWest()),
           miles = meters*0.000621371,
           center = map.getCenter();
@@ -98,12 +99,17 @@ var eventsMap = function() {
     isSmallScreen: function() {
       return document.documentElement.clientWidth <= 720;
     },
+    markerIndex: function(id) {
+      var markerList = $("#mobile .list-event");
+      return markerList.index($('#mobile .list-event[data-id="'+id+'"]'));
+    },
     swipe: function(event, phase, direction, distance, duration) {
         // from https://github.com/mattbryson/TouchSwipe-Jquery-Plugin/issues/275
         $(this).swipe("option", "preventDefaultEvents", (direction === "up" || direction === "down"));
         var width = document.documentElement.clientWidth;
         var eventId = $(event.target).closest(".list-event").attr("data-id");
-        var index = markerIds.indexOf(eventId);
+        var markerList = $("#mobile .list-event");
+        var index = eventsApp.markerIndex(eventId);
         var sign = direction === "left" ? 1 : -1;
 
         if (direction === "down" || direction === "up") {
@@ -123,17 +129,15 @@ var eventsMap = function() {
         }
         if (phase === "end") {
           // swipe left on last or right on first: reset
-          if ((index === markerIds.length-1 && direction === "left") ||
+          if ((index === markerList.length-1 && direction === "left") ||
               (index === 0 && direction === "right")) {
             eventsApp.scrollDetails(width*index, 0, 0);
           } else {
             eventsApp.scrollDetails(width*index + width*sign, 0, 0);
-            var marker = markersById[markerIds[index+sign]];
-            var prevMarker = markersById[markerIds[index]];
+            var next = $("#mobile .list-event")[index+sign];
+            var marker = markersById[$(next).attr("data-id")];
             if (marker) {
-              eventsApp.zoomToMarker(marker);
-            } else if (prevMarker) {
-              eventsApp.unhighlightMarker(prevMarker);
+              eventsApp.swipeToMarker(marker);
             }
           }
         }
@@ -284,15 +288,9 @@ var eventsMap = function() {
       if (!map.hasLayer(markerGroup)) {
         map.addLayer(markerGroup);
       }
-      // zoom to fit markers if the "update map button" is unchecked
-      // always zoom to markers on mobile search
       if (setup && (eventsApp.moveUpdate() || !visible)) {
         return;
       }
-      var group = new L.featureGroup(_.values(visible)),
-        bounds = group.getBounds();
-      map.fitBounds(bounds, { maxZoom : 15});
-      setup = true;
     },
     clickMarker: function(marker, clickY) {
       if (eventsApp.isSmallScreen()) {
@@ -303,16 +301,19 @@ var eventsMap = function() {
           map.panTo(marker.getLatLng());
         }
         eventsApp.highlightMarker(marker);
-
+        // TODO: click opens cluster; don't reset it
         // get marker index
-        var idx = markerIds.indexOf(marker.eventId);
+        var index = eventsApp.markerIndex(marker.eventId);
         $("#detail").show();
-        $("#detail").attr("transform", "translate(-"+idx*width+", 0px)");
+        $("#detail-contents").attr("transform", "translate(-"+index*width+"px, 0px)");
       } else {
-        var el = $('#'+marker.eventId).offset();
-        if (el) {
+        var el = $('.list-event[data-id="'+marker.eventId+'"]');
+        $(".list-event").removeClass("selected");
+        $(el).addClass("selected");
+        var offset = el.offset();
+        if (offset) {
           $('html, body').animate({
-            scrollTop: el.top
+            scrollTop: offset.top
           }, 1000);
         }
       }
@@ -438,10 +439,14 @@ var eventsMap = function() {
           }
           return (event.startDate < minDt || event.startDate > maxDt);
         });
-        markerIds = eventsToShow.map(function(ev) {
-          return ev.lookupId;
-        });
         eventsApp.addMarkers(eventsToShow);
+        var group = new L.featureGroup();
+        eventsToShow.forEach(function(ev) {
+            group.addLayer(markersById[ev.lookupId]);
+        });
+        if (group.getLayers().length) {
+          map.fitBounds(group.getBounds(), { maxZoom : 12});
+        }
 
         d3.select("#events").attr("class",eventsToShow.length ? "event" : "error");
 
@@ -479,14 +484,13 @@ var eventsMap = function() {
           var id = $(this).closest(".list-event").attr("data-id");
           eventsApp.zoomToMarker(markersById[id]);
         });
-        $(".list-event").hover(
+        $(".event-wrapper .list-event").hover(
           function() {
             var id = $(this).attr("data-id");
             eventsApp.highlightMarker(markersById[id]);
           },
           function() {
-            var id = $(this).attr("data-id");
-            eventsApp.unhighlightMarker(markersById[id]);
+            eventsApp.unhighlightActiveMarker();
           }
         );
         $("#dateSlider").dateRangeSlider("resize");
@@ -520,13 +524,35 @@ var eventsMap = function() {
       marker.setIcon(standardIcon);
       // put it back to original z-index
       marker.setZIndexOffset(-1000);
+    },
+
+    unhighlightActiveMarker: function() {
+      if (!activeMarker) {
+        return;
+      }
+      eventsApp.unhighlightMarker(activeMarker);
       activeMarker = null;
     },
 
     setPopupMarker: function(marker) {
       popupMarker = marker;
     },
-
+    swipeToMarker: function(marker) {
+      if (!marker) {
+        return;
+      }
+      var parent = markerGroup.getVisibleParent(marker);
+      if (parent && parent !== marker) {  // cluster group
+        parent.spiderfy();
+      }
+      eventsApp.highlightMarker(marker);
+      var markerPos = map.latLngToContainerPoint(marker.getLatLng());
+      var detailTop = $("#detail").offset().top;
+      // hidden below details
+      if (!markerPos || markerPos.y < 0 || markerPos.y > detailTop) {
+        map.setView(marker.getLatLng());
+      }
+    },
     zoomToMarker: function(marker) {
       // if there's a marker with open popup, close it
       // unless it's the one we're zooming to
@@ -537,7 +563,6 @@ var eventsMap = function() {
       if (!marker) {
         return;
       }
-      marker.setIcon(activeIcon);
       var parent = markerGroup.getVisibleParent(marker);
       if (parent === marker) {  // single marker
         map.setView(marker.getLatLng(), 13); // clustering disabled
@@ -561,6 +586,7 @@ var eventsMap = function() {
       // by retrieving 500 results and ignoring the NYC City Hall ones we get reasonable
       // behavior for Manhattan users.
       var self = this;
+      $("#details").hide();
       d3.json("https://www.hillaryclinton.com/api/events/events?lat="+lat+"&lng="+lng+"&radius="+radius+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=500&onepage=1&_=1457303591599", function(error, json){
         allEvents = json.events;
         // uncomment to debug duplicates
