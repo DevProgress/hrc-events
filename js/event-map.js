@@ -35,9 +35,9 @@ var eventsMap = function() {
     searchInput = 'search-input';
 
   var iso = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ"),
-    wholeDate = d3.time.format("%m/%d %I:%M %p"),
-    dateFormat = d3.time.format("%m/%d"),
-    hourFormat = d3.time.format("%I:%M%p");
+    wholeDate = d3.time.format("%b %-d %-I:%M %p"),
+    dateFormat = d3.time.format("%b %-d"),
+    hourFormat = d3.time.format("%-I:%M%p");
 
   var eventsApp = {
     init : function() {
@@ -451,7 +451,14 @@ var eventsMap = function() {
         d3.select("#events").attr("class",eventsToShow.length ? "event" : "error");
 
         eventsToShow.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
-
+        var titles = _.countBy(eventsToShow, function(ev) {
+          return ev.name;
+        });
+        eventsToShow.forEach(function(ev) {
+          if (titles[ev.name] > 1) {
+            ev.name += " ("+dateFormat(iso.parse(ev.startDate))+")";
+          }
+        });
         var events = d3.selectAll(".event-list").selectAll(".list-event")
           .data(eventsToShow, function(d) { return d.lookupId; });
         var entering = events.enter().append("div")
