@@ -31,7 +31,7 @@ var eventsMap = function() {
     minDate = new Date(),
     maxDate = new Date(minDate.getTime()+(28*1000*60*60*24)),
     setup = false,
-    cancelEventSearch = false,
+    swipe = null,
     searchInput = 'search-input';
 
   var iso = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ"),
@@ -56,12 +56,6 @@ var eventsMap = function() {
 
       map.on("dragend",function(){
         if (!eventsApp.moveUpdate()) return;
-        /*
-        if (cancelEventSearch) {
-          cancelEventSearch = true;  // zoom next time
-          return;
-        }
-        */
         var meters = map.getBounds().getNorthEast().distanceTo(map.getBounds().getSouthWest()),
           miles = meters*0.000621371,
           center = map.getCenter();
@@ -86,15 +80,6 @@ var eventsMap = function() {
       d3.selectAll(".clear-button").on("click",function(){
         eventsApp.clearSearchBox();
       });
-      $("#detail").swipe({
-        allowPageScroll: 'vertical',
-        swipeStatus: function(event, phase, direction, distance, duration) {
-          eventsApp.swipe(event, phase, direction, distance, duration);
-        },
-        tap: function(/*event*/) {
-          $("#detail").hide();
-        }
-      });
     },
     isSmallScreen: function() {
       return document.documentElement.clientWidth <= 720;
@@ -103,57 +88,6 @@ var eventsMap = function() {
       var markerList = $("#mobile .list-event");
       return markerList.index($('#mobile .list-event[data-id="'+id+'"]'));
     },
-    swipe: function(event, phase, direction, distance, duration) {
-        // from https://github.com/mattbryson/TouchSwipe-Jquery-Plugin/issues/275
-        $(this).swipe("option", "preventDefaultEvents", (direction === "up" || direction === "down"));
-        var width = document.documentElement.clientWidth;
-        var eventId = $(event.target).closest(".list-event").attr("data-id");
-        var markerList = $("#mobile .list-event");
-        var index = eventsApp.markerIndex(eventId);
-        var sign = direction === "left" ? 1 : -1;
-
-        if (direction === "down" || direction === "up") {
-          if (phase === "move") {
-            var ev = $(event.target).closest(".list-event");
-            distance = direction === "up" ? -distance : distance;
-            ev.css("transform", "translate(0px, "+distance+"px)");
-          }
-          return;
-        }
-
-        if (phase === "move") {
-          return eventsApp.scrollDetails(width*index + distance*sign, 0, 0);
-        }
-        if (phase === "cancel") {
-          return eventsApp.scrollDetails(width*index, 0, 500);
-        }
-        if (phase === "end") {
-          // swipe left on last or right on first: reset
-          if ((index === markerList.length-1 && direction === "left") ||
-              (index === 0 && direction === "right")) {
-            eventsApp.scrollDetails(width*index, 0, 0);
-          } else {
-            eventsApp.scrollDetails(width*index + width*sign, 0, 0);
-            var next = $("#mobile .list-event")[index+sign];
-            var marker = markersById[$(next).attr("data-id")];
-            if (marker) {
-              eventsApp.swipeToMarker(marker);
-            }
-          }
-        }
-    },
-
-    /**
-     * update the position of the list-event on drag
-     */
-    scrollDetails: function(distanceX, distanceY, duration) {
-        $("#detail-contents").css("transition-duration", (duration / 1000).toFixed(1) + "s");
-        // inverse the number we set in the css
-        var x = (distanceX < 0 ? "" : "-") + Math.abs(distanceX).toString();
-        var y = distanceY;
-        $("#detail-contents").css("transform", "translate("+x+"px, "+y+"px)");
-    },
-
     moveUpdate: function() {
       return $('#move-update:visible').length === 0 || $('#move-update').is(':checked');
     },
@@ -294,18 +228,29 @@ var eventsMap = function() {
     },
     clickMarker: function(marker, clickY) {
       if (eventsApp.isSmallScreen()) {
-        var width = document.documentElement.clientWidth;
         // if marker is outside of middle third, center it
         var position = clickY/document.documentElement.clientHeight;
         if (position < 0.33 || position > 0.6) {
           map.panTo(marker.getLatLng());
         }
         eventsApp.highlightMarker(marker);
-        // TODO: click opens cluster; don't reset it
-        // get marker index
-        var index = eventsApp.markerIndex(marker.eventId);
+        // open details to this marker
         $("#detail").show();
-        $("#detail-contents").attr("transform", "translate(-"+index*width+"px, 0px)");
+        var index = eventsApp.markerIndex(marker.eventId);
+        console.log('marker='+marker.eventId+' index='+index);
+        if (!swipe) {
+          console.log('start slider');
+          swipe = Swipe(document.getElementById("slider"), {
+            startSlide: index,
+            callback: function(index, elem) {
+              var marker = markersById[$(elem).attr("data-id")];
+              eventsApp.swipeToMarker(marker);
+            }
+          });
+        } else {
+          console.log('slide to '+index);
+          swipe.slide(index, 100);
+        }
       } else {
         var el = $('.list-event[data-id="'+marker.eventId+'"]');
         $(".list-event").removeClass("selected");
@@ -470,7 +415,7 @@ var eventsMap = function() {
         entering.append("p").attr("class","location");
         entering.append("p").attr("class","description");
         events.exit().remove();
-        events.select("h3").text(function(d){ return d.name; })
+        events.select("h3").text(function(d, i){ return i+' '+d.name; })
           .attr("class", "zoom-marker");
         events.select(".time").html(function(d){
           return eventsApp.formatDate(d.startDate, d.endDate);
@@ -483,10 +428,11 @@ var eventsMap = function() {
         events.select(".description").text(function(d){ return d.description; });
         events.select(".rsvp").attr("href",function(d){ return "https://www.hillaryclinton.com/events/view/"+d.lookupId; });
         var width = document.documentElement.clientWidth;
-        $("#detail-contents").outerWidth(width*eventsToShow.length);
-        $("#detail-contents").outerHeight(width*document.documentElement.clientHeight);
-        $("#detail-contents .list-event").outerWidth(width);
-
+        // re-create swipe with newly populated list of events
+        if (swipe) {
+          swipe.kill();
+          swipe = null;
+        }
         $(".zoom-marker").on("click", function() {
           var id = $(this).closest(".list-event").attr("data-id");
           eventsApp.zoomToMarker(markersById[id]);
@@ -500,6 +446,9 @@ var eventsMap = function() {
             eventsApp.unhighlightActiveMarker();
           }
         );
+        $("#mobile .list-event").click(function() {
+          $("#detail").hide();
+        });
         $("#dateSlider").dateRangeSlider("resize");
     },
 

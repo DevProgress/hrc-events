@@ -457,32 +457,23 @@ html, body {
     margin: 0;
   }
 
-  #detail-contents {
+  .swipe {
     overflow: hidden;
-    transition-property: transform;
-    transition-duration: 0.5s;
-    transition-timing-function: ease-out;
+    visibility: hidden;
+    position: relative;
   }
-
-  #detail-contents .list-event {
-    display: inline-block;
-    margin: 0;
-    padding: 10px;
-    border-right: 1px dotted #254da3;
-    vertical-align: top;
+  .swipe-wrap {
+    overflow: hidden;
+    position: relative;
   }
-
-  #detail-contents .list-event:first-child {
-    border-left: 5px solid #254da3;
+  .swipe-wrap > div {
+    float: left;
+    width: 100%;
+    position: relative;
   }
-
-  #detail-contents .list-event:last-child {
-    border-right: 5px solid #254da3;
-  }
-
   .list-event .rsvp {
-    font-size:22px;
-    margin-left:12px;
+    font-size: 22px;
+    margin-left: 12px;
   }
   .list-event h3, .list-event .location {
     cursor: default;
