@@ -237,18 +237,16 @@ var eventsMap = function() {
         // open details to this marker
         $("#detail").show();
         var index = eventsApp.markerIndex(marker.eventId);
-        console.log('marker='+marker.eventId+' index='+index);
         if (!swipe) {
-          console.log('start slider');
           swipe = Swipe(document.getElementById("slider"), {
             startSlide: index,
+            disableScroll: false,
             callback: function(index, elem) {
               var marker = markersById[$(elem).attr("data-id")];
               eventsApp.swipeToMarker(marker);
             }
           });
         } else {
-          console.log('slide to '+index);
           swipe.slide(index, 100);
         }
       } else {
@@ -415,7 +413,7 @@ var eventsMap = function() {
         entering.append("p").attr("class","location");
         entering.append("p").attr("class","description");
         events.exit().remove();
-        events.select("h3").text(function(d, i){ return i+' '+d.name; })
+        events.select("h3").text(function(d, i){ return d.name; })
           .attr("class", "zoom-marker");
         events.select(".time").html(function(d){
           return eventsApp.formatDate(d.startDate, d.endDate);
@@ -448,6 +446,24 @@ var eventsMap = function() {
         );
         $("#mobile .list-event").click(function() {
           $("#detail").hide();
+        });
+        var startY = 0;
+        $("#mobile .list-event").on("touchstart", function(ev) {
+          startY = ev.originalEvent.touches[0].pageY;
+        });
+        $("#mobile .list-event").on("touchmove", function(ev) {
+          var details = $(ev.target).closest(".list-event");
+          var current = details.css("top") || "0px";
+          current = parseInt(current.replace("px", ""));
+          var newY = current + ev.originalEvent.touches[0].pageY - startY;
+          // don't move top of .list-event lower than top of details pane
+          // don't move bottom of .list-event higher than bottom of details pane
+          if (newY > 0) {
+            return;
+          }
+          var minY = $('#detail').height() - details.height() - 20;
+          newY = Math.max(newY, minY);
+          details.css("top", (newY)+"px");
         });
         $("#dateSlider").dateRangeSlider("resize");
     },

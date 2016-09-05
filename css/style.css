@@ -470,6 +470,7 @@ html, body {
     float: left;
     width: 100%;
     position: relative;
+    overflow-y: auto;
   }
   .list-event .rsvp {
     font-size: 22px;
