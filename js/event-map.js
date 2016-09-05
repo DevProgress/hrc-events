@@ -60,12 +60,12 @@ var eventsMap = function() {
           miles = meters*0.000621371,
           center = map.getCenter();
         searchedLocation = [center.lat, center.lng];
-        eventsApp.doEventSearch(center.lat, center.lng, miles/2);
+        eventsApp.doEventSearch(center.lat, center.lng, miles/2, false);
       });
     },
     setUpEventHandlers : function() {
       d3.select("#radius-select").on("change",function(){
-        eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
+        eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius(), true);
       });
       d3.select("#move-update").on("change",function(){
         d3.select(".radius-wrapper")
@@ -95,7 +95,7 @@ var eventsMap = function() {
       if (!navigator.geolocation) return;
       navigator.geolocation.getCurrentPosition(function(position) {
           searchedLocation = [position.coords.latitude, position.coords.longitude];
-          eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius());
+          eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius(), true);
       }, function error(msg) {
           //do nothing
       },
@@ -357,7 +357,7 @@ var eventsMap = function() {
           return;
         }
         map.setView(searchedLocation, 12);
-        eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
+        eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius(), true);
       } else
         d3.json("https://search.mapzen.com/v1/search?text="+query+"&boundary.country=USA&api_key=search-Ff4Gs8o", function(error, json) {
           if (!json.features.length) {
@@ -369,10 +369,10 @@ var eventsMap = function() {
             searchedLocation = [selected.geometry.coordinates[1], selected.geometry.coordinates[0]];
 
           map.setView(searchedLocation, 12);
-          eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
+          eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius(), true);
         });
     },
-    drawEvents: function() {
+    drawEvents: function(fitBounds) {
         // events happening at NYC City Hall have a fake location, are not actually happening there, and should not be shown
         var minDt = iso(minDate);
         var maxDt = iso(maxDate);
@@ -383,14 +383,15 @@ var eventsMap = function() {
           return (event.startDate < minDt || event.startDate > maxDt);
         });
         eventsApp.addMarkers(eventsToShow);
-        var group = new L.featureGroup();
-        eventsToShow.forEach(function(ev) {
-            group.addLayer(markersById[ev.lookupId]);
-        });
-        if (group.getLayers().length) {
-          map.fitBounds(group.getBounds(), { maxZoom : 12});
+        if (fitBounds) {
+          var group = new L.featureGroup();
+          eventsToShow.forEach(function(ev) {
+              group.addLayer(markersById[ev.lookupId]);
+          });
+          if (group.getLayers().length) {
+            map.fitBounds(group.getBounds(), { maxZoom : 12});
+          }
         }
-
         d3.select("#events").attr("class",eventsToShow.length ? "event" : "error");
 
         eventsToShow.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
@@ -553,7 +554,7 @@ var eventsMap = function() {
       activeMarker = marker;
     },
 
-    doEventSearch : function(lat, lng, radius) {
+    doEventSearch : function(lat, lng, radius, fitBounds) {
       // shameful hack to work around all the NYC City Hall events;
       // by retrieving 500 results and ignoring the NYC City Hall ones we get reasonable
       // behavior for Manhattan users.
@@ -572,10 +573,10 @@ var eventsMap = function() {
         // bump the radius until an event is found within 150mi
         if (allEvents.length < 1 && radius <= 150) {
           radius = radius*2;
-          eventsApp.doEventSearch(lat, lng, radius);
+          eventsApp.doEventSearch(lat, lng, radius, fitBounds);
           return;
         }
-        self.drawEvents();
+        self.drawEvents(fitBounds);
       });
     }
   };
