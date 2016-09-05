@@ -48,6 +48,7 @@ var eventsMap = function() {
       this.setUpDateSlider();
     },
     setUpMap : function() {
+      var ts = (new Date()).getTime();
       map = L.Mapzen.map('map', {
         scrollWheelZoom : false,
         scene : L.Mapzen.HouseStyles.Refill
@@ -67,8 +68,11 @@ var eventsMap = function() {
         searchedLocation = [center.lat, center.lng];
         eventsApp.doEventSearch(center.lat, center.lng, miles/2);
       });
+      map.on("load", function(event) {
+        console.log("load elapsed="+((new Date()).getTime()-ts));
+      });
       map.on("tangramloaded", function(event) {
-        console.log("tangramloaded");
+        console.log("tangramloaded elapsed="+((new Date()).getTime()-ts));
         if (document.getElementById("zipcode")) {
           return;  // already loaded
         }
