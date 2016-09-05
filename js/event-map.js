@@ -46,9 +46,6 @@ var eventsMap = function() {
       this.setUpEventHandlers();
       this.tryForAutoLocation();
       this.setUpDateSlider();
-      var script = document.createElement("script");
-      script.src = "js/zipcode.js";
-      document.getElementsByTagName("head")[0].appendChild(script);
     },
     setUpMap : function() {
       map = L.Mapzen.map('map', {
@@ -70,6 +67,16 @@ var eventsMap = function() {
         searchedLocation = [center.lat, center.lng];
         eventsApp.doEventSearch(center.lat, center.lng, miles/2);
       });
+      map.on("tangramloaded", function(event) {
+        console.log("tangramloaded");
+        if (document.getElementById("zipcode")) {
+          return;  // already loaded
+        }
+        var script = document.createElement("script");
+        script.src = "js/zipcode.js";
+        script.id = "zipcode";
+        document.getElementsByTagName("head")[0].appendChild(script);
+      });      
     },
     setUpEventHandlers : function() {
       d3.select("#radius-select").on("change",function(){
@@ -154,7 +161,9 @@ var eventsMap = function() {
       return $('#move-update:visible').length === 0 || $('#move-update').is(':checked');
     },
     tryForAutoLocation : function() {
-      if (!navigator.geolocation) return;
+      if (!navigator.geolocation) {
+        return;
+      }
       navigator.geolocation.getCurrentPosition(function(position) {
           eventsApp.showMap(position.coords.latitude, position.coords.longitude, 10);
           searchedLocation = [position.coords.latitude, position.coords.longitude];
