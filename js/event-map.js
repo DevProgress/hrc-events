@@ -49,9 +49,10 @@ var eventsMap = function() {
     setUpMap : function() {
       var ts = (new Date()).getTime();
       L.mapbox.accessToken = 'pk.eyJ1IjoiaHJjLWV2ZW50cyIsImEiOiJjaXNxcnZ5aWgwMmE4MnRtMTBib2JoMWF2In0.yLt9Q6B-IZ2FFQ-KPg3rxg';
-
+      var layer = L.mapbox.tileLayer('mapbox.light');
       map = L.mapbox.map('map');
-      
+      map.addLayer(layer);
+
       L.mapbox.styleLayer('mapbox://styles/hrc-events/cisqrwrb300252xpj5ux74kr5').addTo(map);
       // disable default state to preference user location:
       map.setView([-80,40], 5);
@@ -67,8 +68,8 @@ var eventsMap = function() {
       map.on("load", function(event) {
         console.log("load elapsed="+((new Date()).getTime()-ts));
       });
-      map.on("tangramloaded", function(event) {
-        console.log("tangramloaded elapsed="+((new Date()).getTime()-ts));
+      layer.on("tileload", function(e) {
+        console.log("tileload elapsed="+((new Date()).getTime() - ts));
         if (document.getElementById("zipcode")) {
           return;  // already loaded
         }
@@ -76,7 +77,7 @@ var eventsMap = function() {
         script.src = "js/zipcode.js";
         script.id = "zipcode";
         document.getElementsByTagName("head")[0].appendChild(script);
-      });      
+      });
     },
     setUpEventHandlers : function() {
       d3.select("#radius-select").on("change",function(){
