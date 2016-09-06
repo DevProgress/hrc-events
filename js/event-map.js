@@ -33,7 +33,7 @@ var eventsMap = function() {
     setup = false,
     swipe = null,
     searchInput = 'search-input';
-
+    
   var iso = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ"),
     wholeDate = d3.time.format("%b %-d %-I:%M %p"),
     dateFormat = d3.time.format("%b %-d"),
@@ -48,12 +48,13 @@ var eventsMap = function() {
     },
     setUpMap : function() {
       var ts = (new Date()).getTime();
-      map = L.Mapzen.map('map', {
-        scrollWheelZoom : false,
-        scene : L.Mapzen.HouseStyles.Refill
-      });
+      L.mapbox.accessToken = 'pk.eyJ1IjoiaHJjLWV2ZW50cyIsImEiOiJjaXNxcnZ5aWgwMmE4MnRtMTBib2JoMWF2In0.yLt9Q6B-IZ2FFQ-KPg3rxg';
+
+      map = L.mapbox.map('map');
+      
+      L.mapbox.styleLayer('mapbox://styles/hrc-events/cisqrwrb300252xpj5ux74kr5').addTo(map);
       // disable default state to preference user location:
-      // map.fitBounds([[48,-123], [28,-70]]);
+      map.setView([-80,40], 5);
 
       map.on("dragend",function(){
         if (!eventsApp.moveUpdate()) return;
