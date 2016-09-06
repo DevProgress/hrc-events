@@ -442,7 +442,8 @@ html, body {
   }
 
   #detail {
-    height: 40%;
+    max-height: 40%;
+    min-height: 30%;
     width: 100%;
     position: absolute;
     bottom: 0;
