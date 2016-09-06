@@ -20,6 +20,7 @@
     <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
     <script src="https://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
     <script src="js/jQDateRangeSlider-withRuler-5.7.2.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/swipe/2.0/swipe.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
   </head>
   <body>
@@ -96,13 +97,20 @@
         <div class="search-box">
           <input type="text" id="mobile-search-input" class="search-input" placeholder="City, address, or zip">
           <svg class="icon icon-search" viewBox="0 0 32 32" version="1.1" width="16" height="16" aria-hidden="true">
-              <path class="path1" d="M31.008 27.231l-7.58-6.447c-0.784-0.705-1.622-1.029-2.299-0.998 1.789-2.096 2.87-4.815 2.87-7.787 0-6.627-5.373-12-12-12s-12 5.373-12 12 5.373 12 12 12c2.972 0 5.691-1.081 7.787-2.87-0.031 0.677 0.293 1.515 0.998 2.299l6.447 7.58c1.104 1.226 2.907 1.33 4.007 0.23s0.997-2.903-0.23-4.007zM12 20c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8z"></path>
+              <path class="search" d="M31.008 27.231l-7.58-6.447c-0.784-0.705-1.622-1.029-2.299-0.998 1.789-2.096 2.87-4.815 2.87-7.787 0-6.627-5.373-12-12-12s-12 5.373-12 12 5.373 12 12 12c2.972 0 5.691-1.081 7.787-2.87-0.031 0.677 0.293 1.515 0.998 2.299l6.447 7.58c1.104 1.226 2.907 1.33 4.007 0.23s0.997-2.903-0.23-4.007zM12 20c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8z"></path>
+          </svg>
+          <svg class="icon icon-x clear-button" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true">
+            <path d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48z"></path>
           </svg>
         </div>
         <div class="autocomplete mobile"></div>
       </div>
 
-      <div id="detail" class="list-event">
+      <div id="detail">
+        <div id="slider">
+          <div class="swipe-wrap event-list">
+          </div>
+        </div>
       </div>
     </div>
 

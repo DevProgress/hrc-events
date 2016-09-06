@@ -214,6 +214,9 @@ html, body {
   padding: 20px;
   border-top: 2px solid #eee;
 }
+.list-event.selected {
+  border: 2px dotted #254da3;
+}
 .list-event:nth-child(odd) {
   background: #f7f7f7;
 }
@@ -397,13 +400,17 @@ html, body {
     width: 80%;
     vertical-align: middle;
   }
-  .search-mobile .icon-search {
+  .search-mobile .icon {
     margin-top: 5px;
     margin-bottom: 5px;
     vertical-align: bottom;
     color: #333;
     position: absolute;
     right: 20px;
+  }
+
+  .search-mobile .icon-x {
+    display: none;
   }
   .search-mobile .icon-search.active {
     color: #254da3;
@@ -433,16 +440,43 @@ html, body {
   .leaflet-popup-pane {
     display: none;
   }
+
   #detail {
     height: 40%;
+    width: 100%;
     position: absolute;
     bottom: 0;
-    display: none;
     background-color: #fff;
-    overflow: scroll;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    display: none;
+  }
+
+  #detail .event-list {
+    margin: 0;
+  }
+
+  .swipe {
+    overflow: hidden;
+    visibility: hidden;
+    position: relative;
+  }
+  .swipe-wrap {
+    overflow: hidden;
+    position: relative;
+  }
+  .swipe-wrap > div {
+    float: left;
+    width: 100%;
+    position: relative;
+    overflow-y: auto;
   }
   .list-event .rsvp {
-    font-size:22px;
-    margin-left:12px;
+    font-size: 22px;
+    margin-left: 12px;
+  }
+  .list-event h3, .list-event .location {
+    cursor: default;
   }
 }

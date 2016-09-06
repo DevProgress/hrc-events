@@ -30,12 +30,14 @@ var eventsMap = function() {
     allEvents = [],
     minDate = new Date(),
     maxDate = new Date(minDate.getTime()+(28*1000*60*60*24)),
+    setup = false,
+    swipe = null,
     searchInput = 'search-input';
 
   var iso = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ"),
-    wholeDate = d3.time.format("%m/%d %I:%M %p"),
-    dateFormat = d3.time.format("%m/%d"),
-    hourFormat = d3.time.format("%I:%M%p");
+    wholeDate = d3.time.format("%b %-d %-I:%M %p"),
+    dateFormat = d3.time.format("%b %-d"),
+    hourFormat = d3.time.format("%-I:%M%p");
 
   var eventsApp = {
     init : function() {
@@ -52,18 +54,18 @@ var eventsMap = function() {
       // disable default state to preference user location:
       // map.fitBounds([[48,-123], [28,-70]]);
 
-      map.on("moveend",function(){
-        if (!document.getElementById('move-update').checked) return;
+      map.on("dragend",function(){
+        if (!eventsApp.moveUpdate()) return;
         var meters = map.getBounds().getNorthEast().distanceTo(map.getBounds().getSouthWest()),
           miles = meters*0.000621371,
           center = map.getCenter();
         searchedLocation = [center.lat, center.lng];
-        eventsApp.doEventSearch(center.lat, center.lng, miles/2);
+        eventsApp.doEventSearch(center.lat, center.lng, miles/2, false);
       });
     },
     setUpEventHandlers : function() {
       d3.select("#radius-select").on("change",function(){
-        eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
+        eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius(), true);
       });
       d3.select("#move-update").on("change",function(){
         d3.select(".radius-wrapper")
@@ -75,16 +77,25 @@ var eventsMap = function() {
       d3.select("#mobile-search-input").on("keyup",function(){
         eventsApp.processKeyup(d3.event);
       });
-      d3.select(".clear-button").on("click",function(){
+      d3.selectAll(".clear-button").on("click",function(){
         eventsApp.clearSearchBox();
       });
     },
+    isSmallScreen: function() {
+      return document.documentElement.clientWidth <= 720;
+    },
+    markerIndex: function(id) {
+      var markerList = $("#mobile .list-event");
+      return markerList.index($('#mobile .list-event[data-id="'+id+'"]'));
+    },
+    moveUpdate: function() {
+      return $('#move-update:visible').length === 0 || $('#move-update').is(':checked');
+    },
     tryForAutoLocation : function() {
       if (!navigator.geolocation) return;
-
       navigator.geolocation.getCurrentPosition(function(position) {
           searchedLocation = [position.coords.latitude, position.coords.longitude];
-          eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius());
+          eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius(), true);
       }, function error(msg) {
           //do nothing
       },
@@ -172,7 +183,7 @@ var eventsMap = function() {
             +eventsApp.formatDate(f.startDate, f.endDate)
             +"</p><p class='location'>"+eventsApp.formatLocation(f.locations[0])
             +"</p><p class='description'>"+f.description
-            +"</p><p class='rsvp'><a href=" + rsvpUrl + ">rsvp</a></p>"
+            +"</p><p class='rsvp noSwipe'><a href=" + rsvpUrl + ">rsvp</a></p>"
           );
           marker.on('click', function(e) {
             eventsApp.clickMarker(e.target, e.originalEvent.clientY);
@@ -211,27 +222,41 @@ var eventsMap = function() {
       if (!map.hasLayer(markerGroup)) {
         map.addLayer(markerGroup);
       }
-      // zoom to fit markers if the "update map button" is unchecked
-      if (document.getElementById('move-update').checked || !visible) return;
-      var group = new L.featureGroup(_.values(visible)),
-        bounds = group.getBounds();
-      map.fitBounds(bounds, { maxZoom : 15});
+      if (setup && (eventsApp.moveUpdate() || !visible)) {
+        return;
+      }
     },
     clickMarker: function(marker, clickY) {
-      if (document.documentElement.clientWidth <= 720) {
-        // scroll up so content doesn't overlap
-        if (clickY > document.documentElement.clientHeight*2/3) {
+      if (eventsApp.isSmallScreen()) {
+        // if marker is outside of middle third, center it
+        var position = clickY/document.documentElement.clientHeight;
+        if (position < 0.33 || position > 0.6) {
           map.panTo(marker.getLatLng());
         }
-        var html = $('#'+marker.eventId).html();
-        $('#detail').html(html);
-        $('#detail').show();
         eventsApp.highlightMarker(marker);
+        // open details to this marker
+        $("#detail").show();
+        var index = eventsApp.markerIndex(marker.eventId);
+        if (!swipe) {
+          swipe = Swipe(document.getElementById("slider"), {
+            startSlide: index,
+            disableScroll: false,
+            callback: function(index, elem) {
+              var marker = markersById[$(elem).attr("data-id")];
+              eventsApp.swipeToMarker(marker);
+            }
+          });
+        } else {
+          swipe.slide(index, 100);
+        }
       } else {
-        var el = $('#'+marker.eventId).offset();
-        if (el) {
+        var el = $('.list-event[data-id="'+marker.eventId+'"]');
+        $(".list-event").removeClass("selected");
+        $(el).addClass("selected");
+        var offset = el.offset();
+        if (offset) {
           $('html, body').animate({
-            scrollTop: el.top
+            scrollTop: offset.top
           }, 1000);
         }
       }
@@ -247,11 +272,13 @@ var eventsMap = function() {
 
       d3.select(".clear-button").style("display","inline-block");
       if (val && val.length) {
-        d3.select(".icon-search").style("color", "#01a9e0");
+        d3.select("#mobile .icon-search").style("display", "none");
+        d3.select("#mobile .icon-x").style("display", "inline-block");
       }
 
       if (!val || !val.length) {
-        d3.select(".icon-search").style("color", "#333333");
+        d3.select("#mobile .icon-search").style("color", "#333333");
+        d3.select("#mobile .icon-x").style("display", "none");
         eventsApp.clearSearchBox();
       } else if (event.keyCode == 40) { //arrow down
         keyIndex = Math.min(keyIndex+1, d3.selectAll(".suggestion")[0].length-1);
@@ -330,7 +357,7 @@ var eventsMap = function() {
           return;
         }
         map.setView(searchedLocation, 12);
-        eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
+        eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius(), true);
       } else
         d3.json("https://search.mapzen.com/v1/search?text="+query+"&boundary.country=USA&api_key=search-Ff4Gs8o", function(error, json) {
           if (!json.features.length) {
@@ -341,10 +368,11 @@ var eventsMap = function() {
           var selected = json.features[0],
             searchedLocation = [selected.geometry.coordinates[1], selected.geometry.coordinates[0]];
 
-          eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
+          map.setView(searchedLocation, 12);
+          eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius(), true);
         });
     },
-    drawEvents: function() {
+    drawEvents: function(fitBounds) {
         // events happening at NYC City Hall have a fake location, are not actually happening there, and should not be shown
         var minDt = iso(minDate);
         var maxDt = iso(maxDate);
@@ -354,25 +382,39 @@ var eventsMap = function() {
           }
           return (event.startDate < minDt || event.startDate > maxDt);
         });
-
         eventsApp.addMarkers(eventsToShow);
-
+        if (fitBounds) {
+          var group = new L.featureGroup();
+          eventsToShow.forEach(function(ev) {
+              group.addLayer(markersById[ev.lookupId]);
+          });
+          if (group.getLayers().length) {
+            map.fitBounds(group.getBounds(), { maxZoom : 12});
+          }
+        }
         d3.select("#events").attr("class",eventsToShow.length ? "event" : "error");
 
         eventsToShow.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
-
-        var events = d3.select(".event-list").selectAll(".list-event")
+        var titles = _.countBy(eventsToShow, function(ev) {
+          return ev.name;
+        });
+        eventsToShow.forEach(function(ev) {
+          if (titles[ev.name] > 1) {
+            ev.name += " ("+dateFormat(iso.parse(ev.startDate))+")";
+          }
+        });
+        var events = d3.selectAll(".event-list").selectAll(".list-event")
           .data(eventsToShow, function(d) { return d.lookupId; });
         var entering = events.enter().append("div")
           .attr("class","list-event")
-          .attr("id", function(d) { return d.lookupId; });
-        entering.append("a").attr("class","rsvp").text("RSVP");
+          .attr("data-id", function(d) { return d.lookupId; });
+        entering.append("a").attr("class","rsvp noSwipe").text("RSVP");
         entering.append("h3");
         entering.append("p").attr("class","time");
         entering.append("p").attr("class","location");
         entering.append("p").attr("class","description");
         events.exit().remove();
-        events.select("h3").text(function(d){ return d.name; })
+        events.select("h3").text(function(d, i){ return d.name; })
           .attr("class", "zoom-marker");
         events.select(".time").html(function(d){
           return eventsApp.formatDate(d.startDate, d.endDate);
@@ -384,21 +426,46 @@ var eventsMap = function() {
           .attr("class", "location zoom-marker");
         events.select(".description").text(function(d){ return d.description; });
         events.select(".rsvp").attr("href",function(d){ return "https://www.hillaryclinton.com/events/view/"+d.lookupId; });
-
+        var width = document.documentElement.clientWidth;
+        // re-create swipe with newly populated list of events
+        if (swipe) {
+          swipe.kill();
+          swipe = null;
+        }
         $(".zoom-marker").on("click", function() {
-          var id = $(this).closest(".list-event").attr("id");
+          var id = $(this).closest(".list-event").attr("data-id");
           eventsApp.zoomToMarker(markersById[id]);
         });
-        $(".list-event").hover(
+        $(".event-wrapper .list-event").hover(
           function() {
-            var id = $(this).attr("id");
+            var id = $(this).attr("data-id");
             eventsApp.highlightMarker(markersById[id]);
           },
           function() {
-            var id = $(this).attr("id");
-            eventsApp.unhighlightMarker(markersById[id]);
+            eventsApp.unhighlightActiveMarker();
           }
         );
+        $("#mobile .list-event").click(function() {
+          $("#detail").hide();
+        });
+        var startY = 0;
+        $("#mobile .list-event").on("touchstart", function(ev) {
+          startY = ev.originalEvent.touches[0].pageY;
+        });
+        $("#mobile .list-event").on("touchmove", function(ev) {
+          var details = $(ev.target).closest(".list-event");
+          var current = details.css("top") || "0px";
+          current = parseInt(current.replace("px", ""));
+          var newY = current + ev.originalEvent.touches[0].pageY - startY;
+          // don't move top of .list-event lower than top of details pane
+          // don't move bottom of .list-event higher than bottom of details pane
+          if (newY > 0) {
+            return;
+          }
+          var minY = $('#detail').height() - details.height() - 20;
+          newY = Math.max(newY, minY);
+          details.css("top", (newY)+"px");
+        });
         $("#dateSlider").dateRangeSlider("resize");
     },
 
@@ -430,13 +497,35 @@ var eventsMap = function() {
       marker.setIcon(standardIcon);
       // put it back to original z-index
       marker.setZIndexOffset(-1000);
+    },
+
+    unhighlightActiveMarker: function() {
+      if (!activeMarker) {
+        return;
+      }
+      eventsApp.unhighlightMarker(activeMarker);
       activeMarker = null;
     },
 
     setPopupMarker: function(marker) {
       popupMarker = marker;
     },
-
+    swipeToMarker: function(marker) {
+      if (!marker) {
+        return;
+      }
+      var parent = markerGroup.getVisibleParent(marker);
+      if (parent && parent !== marker) {  // cluster group
+        parent.spiderfy();
+      }
+      eventsApp.highlightMarker(marker);
+      var markerPos = map.latLngToContainerPoint(marker.getLatLng());
+      var detailTop = $("#detail").offset().top;
+      // hidden below details
+      if (!markerPos || markerPos.y < 0 || markerPos.y > detailTop) {
+        map.setView(marker.getLatLng());
+      }
+    },
     zoomToMarker: function(marker) {
       // if there's a marker with open popup, close it
       // unless it's the one we're zooming to
@@ -447,7 +536,6 @@ var eventsMap = function() {
       if (!marker) {
         return;
       }
-      marker.setIcon(activeIcon);
       var parent = markerGroup.getVisibleParent(marker);
       if (parent === marker) {  // single marker
         map.setView(marker.getLatLng(), 13); // clustering disabled
@@ -466,11 +554,12 @@ var eventsMap = function() {
       activeMarker = marker;
     },
 
-    doEventSearch : function(lat, lng, radius) {
+    doEventSearch : function(lat, lng, radius, fitBounds) {
       // shameful hack to work around all the NYC City Hall events;
       // by retrieving 500 results and ignoring the NYC City Hall ones we get reasonable
       // behavior for Manhattan users.
       var self = this;
+      $("#details").hide();
       d3.json("https://www.hillaryclinton.com/api/events/events?lat="+lat+"&lng="+lng+"&radius="+radius+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=500&onepage=1&_=1457303591599", function(error, json){
         allEvents = json.events;
         // uncomment to debug duplicates
@@ -484,14 +573,13 @@ var eventsMap = function() {
         // bump the radius until an event is found within 150mi
         if (allEvents.length < 1 && radius <= 150) {
           radius = radius*2;
-          console.log('too small - bumping to ' + radius + ' miles');
-          eventsApp.doEventSearch(lat, lng, radius);
+          eventsApp.doEventSearch(lat, lng, radius, fitBounds);
           return;
         }
-        self.drawEvents();
+        self.drawEvents(fitBounds);
       });
     }
   };
   eventsApp.throttledDoSuggestion = _.throttle(eventsApp.doSuggestion, 50);
   return eventsApp;
-}
+};
