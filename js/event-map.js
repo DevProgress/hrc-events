@@ -1,7 +1,6 @@
 var eventsMap = function() {
   var map,
     markers = [],
-    markerIds = [],
     markersById = {},
     markerGroup = L.markerClusterGroup({
       showCoverageOnHover: false,
@@ -32,13 +31,13 @@ var eventsMap = function() {
     minDate = new Date(),
     maxDate = new Date(minDate.getTime()+(28*1000*60*60*24)),
     setup = false,
-    cancelEventSearch = false,
+    swipe = null,
     searchInput = 'search-input';
 
   var iso = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ"),
-    wholeDate = d3.time.format("%m/%d %I:%M %p"),
-    dateFormat = d3.time.format("%m/%d"),
-    hourFormat = d3.time.format("%I:%M%p");
+    wholeDate = d3.time.format("%b %-d %-I:%M %p"),
+    dateFormat = d3.time.format("%b %-d"),
+    hourFormat = d3.time.format("%-I:%M%p");
 
   var eventsApp = {
     init : function() {
@@ -56,17 +55,13 @@ var eventsMap = function() {
       // disable default state to preference user location:
       // map.fitBounds([[48,-123], [28,-70]]);
 
-      map.on("moveend",function(ev){
+      map.on("dragend",function(){
         if (!eventsApp.moveUpdate()) return;
-        if (cancelEventSearch) {
-          cancelEventSearch = true;  // zoom next time
-          return;
-        }
         var meters = map.getBounds().getNorthEast().distanceTo(map.getBounds().getSouthWest()),
           miles = meters*0.000621371,
           center = map.getCenter();
         searchedLocation = [center.lat, center.lng];
-        eventsApp.doEventSearch(center.lat, center.lng, miles/2);
+        eventsApp.doEventSearch(center.lat, center.lng, miles/2, false);
       });
       map.on("load", function(event) {
         console.log("load elapsed="+((new Date()).getTime()-ts));
@@ -84,7 +79,7 @@ var eventsMap = function() {
     },
     setUpEventHandlers : function() {
       d3.select("#radius-select").on("change",function(){
-        eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
+        eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius(), true);
       });
       d3.select("#move-update").on("change",function(){
         d3.select(".radius-wrapper")
@@ -99,68 +94,14 @@ var eventsMap = function() {
       d3.selectAll(".clear-button").on("click",function(){
         eventsApp.clearSearchBox();
       });
-      $("#detail").swipe({
-        allowPageScroll: 'vertical',
-        swipeStatus: function(event, phase, direction, distance, duration) {
-          eventsApp.swipe(event, phase, direction, distance, duration);
-        },
-        tap: function(/*event*/) {
-          $("#detail").hide();
-        }
-      });
     },
-    swipe: function(event, phase, direction, distance, duration) {
-        // from https://github.com/mattbryson/TouchSwipe-Jquery-Plugin/issues/275
-        $(this).swipe("option", "preventDefaultEvents", (direction === "up" || direction === "down"));
-        var width = document.documentElement.clientWidth;
-        var eventId = $(event.target).closest(".list-event").attr("data-id");
-        var index = markerIds.indexOf(eventId);
-        var sign = direction === "left" ? 1 : -1;
-
-        if (direction === "down" || direction === "up") {
-          if (phase === "move") {
-            var ev = $(event.target).closest(".list-event");
-            distance = direction === "up" ? -distance : distance;
-            ev.css("transform", "translate(0px, "+distance+"px)");
-          }
-          return;
-        }
-
-        if (phase === "move") {
-          return eventsApp.scrollDetails(width*index + distance*sign, 0, 0);
-        }
-        if (phase === "cancel") {
-          return eventsApp.scrollDetails(width*index, 0, 500);
-        }
-        if (phase === "end") {
-          // swipe left on last or right on first: reset
-          if ((index === markerIds.length-1 && direction === "left") ||
-              (index === 0 && direction === "right")) {
-            eventsApp.scrollDetails(width*index, 0, 0);
-          } else {
-            eventsApp.scrollDetails(width*index + width*sign, 0, 0);
-            var marker = markersById[markerIds[index+sign]];
-            var prevMarker = markersById[markerIds[index]];
-            if (marker) {
-              eventsApp.zoomToMarker(marker);
-            } else if (prevMarker) {
-              eventsApp.unhighlightMarker(prevMarker);
-            }
-          }
-        }
+    isSmallScreen: function() {
+      return document.documentElement.clientWidth <= 720;
     },
-
-    /**
-     * update the position of the list-event on drag
-     */
-    scrollDetails: function(distanceX, distanceY, duration) {
-        $("#detail-contents").css("transition-duration", (duration / 1000).toFixed(1) + "s");
-        // inverse the number we set in the css
-        var x = (distanceX < 0 ? "" : "-") + Math.abs(distanceX).toString();
-        var y = distanceY;
-        $("#detail-contents").css("transform", "translate("+x+"px, "+y+"px)");
+    markerIndex: function(id) {
+      var markerList = $("#mobile .list-event");
+      return markerList.index($('#mobile .list-event[data-id="'+id+'"]'));
     },
-
     moveUpdate: function() {
       return $('#move-update:visible').length === 0 || $('#move-update').is(':checked');
     },
@@ -171,18 +112,17 @@ var eventsMap = function() {
       navigator.geolocation.getCurrentPosition(function(position) {
           eventsApp.showMap(position.coords.latitude, position.coords.longitude, 10);
           searchedLocation = [position.coords.latitude, position.coords.longitude];
-          eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius());
+          eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius(), true);
       }, function error(msg) {
-          eventsApp.showMap(39.833333, -98.583333, 3, true);
+          eventsApp.showMap(39.833333, -98.583333, 3);
       },
       // if the browser has a cached location thats not more than one hour
       // old, we'll just use that to make the page go faster.
       {maximumAge: 1000 * 3600});
     },
-    showMap: function(lat, lng, zoom, skipSearch) {
+    showMap: function(lat, lng, zoom) {
       // setting the view will fire a moveend event
       // we don't want to do an event search, with zoom to markers
-      cancelEventSearch = skipSearch;
       map.setView(L.latLng(lat, lng), zoom);
     },
     setUpDateSlider: function() {
@@ -304,32 +244,41 @@ var eventsMap = function() {
       if (!map.hasLayer(markerGroup)) {
         map.addLayer(markerGroup);
       }
-      // zoom to fit markers if the "update map button" is unchecked
-      if (setup && (eventsApp.moveUpdate() || !visible)) return;
-      var group = new L.featureGroup(_.values(visible)),
-        bounds = group.getBounds();
-      map.fitBounds(bounds, { maxZoom : 15});
-      setup = true;
+      if (setup && (eventsApp.moveUpdate() || !visible)) {
+        return;
+      }
     },
     clickMarker: function(marker, clickY) {
-      if (document.documentElement.clientWidth <= 720) {
-        var width = document.documentElement.clientWidth;
+      if (eventsApp.isSmallScreen()) {
         // if marker is outside of middle third, center it
         var position = clickY/document.documentElement.clientHeight;
         if (position < 0.33 || position > 0.6) {
           map.panTo(marker.getLatLng());
         }
         eventsApp.highlightMarker(marker);
-
-        // get marker index
-        var idx = markerIds.indexOf(marker.eventId);
+        // open details to this marker
         $("#detail").show();
-        $("#detail").attr("transform", "translate(-"+idx*width+", 0px)");
+        var index = eventsApp.markerIndex(marker.eventId);
+        if (!swipe) {
+          swipe = Swipe(document.getElementById("slider"), {
+            startSlide: index,
+            disableScroll: false,
+            callback: function(index, elem) {
+              var marker = markersById[$(elem).attr("data-id")];
+              eventsApp.swipeToMarker(marker);
+            }
+          });
+        } else {
+          swipe.slide(index, 100);
+        }
       } else {
-        var el = $('#'+marker.eventId).offset();
-        if (el) {
+        var el = $('.list-event[data-id="'+marker.eventId+'"]');
+        $(".list-event").removeClass("selected");
+        $(el).addClass("selected");
+        var offset = el.offset();
+        if (offset) {
           $('html, body').animate({
-            scrollTop: el.top
+            scrollTop: offset.top
           }, 1000);
         }
       }
@@ -430,7 +379,7 @@ var eventsMap = function() {
           return;
         }
         map.setView(searchedLocation, 12);
-        eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
+        eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius(), true);
       } else
         d3.json("https://search.mapzen.com/v1/search?text="+query+"&boundary.country=USA&api_key=search-Ff4Gs8o", function(error, json) {
           if (!json.features.length) {
@@ -441,10 +390,11 @@ var eventsMap = function() {
           var selected = json.features[0],
             searchedLocation = [selected.geometry.coordinates[1], selected.geometry.coordinates[0]];
 
-          eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius());
+          map.setView(searchedLocation, 12);
+          eventsApp.doEventSearch(searchedLocation[0],searchedLocation[1], eventsApp.getRadius(), true);
         });
     },
-    drawEvents: function() {
+    drawEvents: function(fitBounds) {
         // events happening at NYC City Hall have a fake location, are not actually happening there, and should not be shown
         var minDt = iso(minDate);
         var maxDt = iso(maxDate);
@@ -454,15 +404,27 @@ var eventsMap = function() {
           }
           return (event.startDate < minDt || event.startDate > maxDt);
         });
-        markerIds = eventsToShow.map(function(ev) {
-          return ev.lookupId;
-        });
         eventsApp.addMarkers(eventsToShow);
-
+        if (fitBounds) {
+          var group = new L.featureGroup();
+          eventsToShow.forEach(function(ev) {
+              group.addLayer(markersById[ev.lookupId]);
+          });
+          if (group.getLayers().length) {
+            map.fitBounds(group.getBounds(), { maxZoom : 12});
+          }
+        }
         d3.select("#events").attr("class",eventsToShow.length ? "event" : "error");
 
         eventsToShow.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
-
+        var titles = _.countBy(eventsToShow, function(ev) {
+          return ev.name;
+        });
+        eventsToShow.forEach(function(ev) {
+          if (titles[ev.name] > 1) {
+            ev.name += " ("+dateFormat(iso.parse(ev.startDate))+")";
+          }
+        });
         var events = d3.selectAll(".event-list").selectAll(".list-event")
           .data(eventsToShow, function(d) { return d.lookupId; });
         var entering = events.enter().append("div")
@@ -474,7 +436,7 @@ var eventsMap = function() {
         entering.append("p").attr("class","location");
         entering.append("p").attr("class","description");
         events.exit().remove();
-        events.select("h3").text(function(d){ return d.name; })
+        events.select("h3").text(function(d, i){ return d.name; })
           .attr("class", "zoom-marker");
         events.select(".time").html(function(d){
           return eventsApp.formatDate(d.startDate, d.endDate);
@@ -487,24 +449,45 @@ var eventsMap = function() {
         events.select(".description").text(function(d){ return d.description; });
         events.select(".rsvp").attr("href",function(d){ return "https://www.hillaryclinton.com/events/view/"+d.lookupId; });
         var width = document.documentElement.clientWidth;
-        $("#detail-contents").outerWidth(width*eventsToShow.length);
-        $("#detail-contents").outerHeight(width*document.documentElement.clientHeight);
-        $("#detail-contents .list-event").outerWidth(width);
-
+        // re-create swipe with newly populated list of events
+        if (swipe) {
+          swipe.kill();
+          swipe = null;
+        }
         $(".zoom-marker").on("click", function() {
-          var id = $(this).closest(".list-event").attr("id");
+          var id = $(this).closest(".list-event").attr("data-id");
           eventsApp.zoomToMarker(markersById[id]);
         });
-        $(".list-event").hover(
+        $(".event-wrapper .list-event").hover(
           function() {
-            var id = $(this).attr("id");
+            var id = $(this).attr("data-id");
             eventsApp.highlightMarker(markersById[id]);
           },
           function() {
-            var id = $(this).attr("id");
-            eventsApp.unhighlightMarker(markersById[id]);
+            eventsApp.unhighlightActiveMarker();
           }
         );
+        $("#mobile .list-event").click(function() {
+          $("#detail").hide();
+        });
+        var startY = 0;
+        $("#mobile .list-event").on("touchstart", function(ev) {
+          startY = ev.originalEvent.touches[0].pageY;
+        });
+        $("#mobile .list-event").on("touchmove", function(ev) {
+          var details = $(ev.target).closest(".list-event");
+          var current = details.css("top") || "0px";
+          current = parseInt(current.replace("px", ""));
+          var newY = current + ev.originalEvent.touches[0].pageY - startY;
+          // don't move top of .list-event lower than top of details pane
+          // don't move bottom of .list-event higher than bottom of details pane
+          if (newY > 0) {
+            return;
+          }
+          var minY = $('#detail').height() - details.height() - 20;
+          newY = Math.max(newY, minY);
+          details.css("top", (newY)+"px");
+        });
         $("#dateSlider").dateRangeSlider("resize");
     },
 
@@ -536,13 +519,35 @@ var eventsMap = function() {
       marker.setIcon(standardIcon);
       // put it back to original z-index
       marker.setZIndexOffset(-1000);
+    },
+
+    unhighlightActiveMarker: function() {
+      if (!activeMarker) {
+        return;
+      }
+      eventsApp.unhighlightMarker(activeMarker);
       activeMarker = null;
     },
 
     setPopupMarker: function(marker) {
       popupMarker = marker;
     },
-
+    swipeToMarker: function(marker) {
+      if (!marker) {
+        return;
+      }
+      var parent = markerGroup.getVisibleParent(marker);
+      if (parent && parent !== marker) {  // cluster group
+        parent.spiderfy();
+      }
+      eventsApp.highlightMarker(marker);
+      var markerPos = map.latLngToContainerPoint(marker.getLatLng());
+      var detailTop = $("#detail").offset().top;
+      // hidden below details
+      if (!markerPos || markerPos.y < 0 || markerPos.y > detailTop) {
+        map.setView(marker.getLatLng());
+      }
+    },
     zoomToMarker: function(marker) {
       // if there's a marker with open popup, close it
       // unless it's the one we're zooming to
@@ -553,7 +558,6 @@ var eventsMap = function() {
       if (!marker) {
         return;
       }
-      marker.setIcon(activeIcon);
       var parent = markerGroup.getVisibleParent(marker);
       if (parent === marker) {  // single marker
         map.setView(marker.getLatLng(), 13); // clustering disabled
@@ -572,11 +576,12 @@ var eventsMap = function() {
       activeMarker = marker;
     },
 
-    doEventSearch : function(lat, lng, radius) {
+    doEventSearch : function(lat, lng, radius, fitBounds) {
       // shameful hack to work around all the NYC City Hall events;
       // by retrieving 500 results and ignoring the NYC City Hall ones we get reasonable
       // behavior for Manhattan users.
       var self = this;
+      $("#details").hide();
       d3.json("https://www.hillaryclinton.com/api/events/events?lat="+lat+"&lng="+lng+"&radius="+radius+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=500&onepage=1&_=1457303591599", function(error, json){
         allEvents = json.events;
         // uncomment to debug duplicates
@@ -591,10 +596,10 @@ var eventsMap = function() {
         if (allEvents.length < 1 && radius <= 150) {
           radius = radius*2;
           console.log('too small - bumping to ' + radius + ' miles');
-          eventsApp.doEventSearch(lat, lng, radius);
+          eventsApp.doEventSearch(lat, lng, radius, fitBounds);
           return;
         }
-        self.drawEvents();
+        self.drawEvents(fitBounds);
       });
     }
   };

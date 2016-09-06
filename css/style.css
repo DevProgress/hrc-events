@@ -214,6 +214,9 @@ html, body {
   padding: 20px;
   border-top: 2px solid #eee;
 }
+.list-event.selected {
+  border: 2px dotted #254da3;
+}
 .list-event:nth-child(odd) {
   background: #f7f7f7;
 }
@@ -454,25 +457,24 @@ html, body {
     margin: 0;
   }
 
-  #detail-contents {
+  .swipe {
     overflow: hidden;
-    transition-property: transform;
-    transition-duration: 0.5s;
-    transition-timing-function: ease-out;
+    visibility: hidden;
+    position: relative;
   }
-
-  #detail-contents .list-event {
-    display: inline-block;
-    margin: 0;
-    padding: 10px;
-    border-left: 1px solid #254da3;
-    border-right: 1px solid #254da3;
-    vertical-align: top;
+  .swipe-wrap {
+    overflow: hidden;
+    position: relative;
   }
-
+  .swipe-wrap > div {
+    float: left;
+    width: 100%;
+    position: relative;
+    overflow-y: auto;
+  }
   .list-event .rsvp {
-    font-size:22px;
-    margin-left:12px;
+    font-size: 22px;
+    margin-left: 12px;
   }
   .list-event h3, .list-event .location {
     cursor: default;
