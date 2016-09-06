@@ -8,10 +8,10 @@ var eventsMap = function() {
       disableClusteringAtZoom: 13
     }),
     standardIcon = L.icon({
-      iconUrl: 'images/octicon-location.png',
-      iconSize:     [32, 32], // size of the icon
-      iconAnchor:   [16, 32], // point of the icon which will correspond to marker's location
-      popupAnchor:  [0, -36] // point from which the popup should open relative to the iconAnchor
+      iconUrl: '/images/hillary-logo-map-icon.png',
+      iconSize:     [32, 27], // size of the icon
+      iconAnchor:   [16, 27], // point of the icon which will correspond to marker's location
+      popupAnchor:  [0, -31] // point from which the popup should open relative to the iconAnchor
     }),
     activeIcon = L.icon({
       iconUrl: 'images/octicon-location-active.png',
