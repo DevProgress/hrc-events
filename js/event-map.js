@@ -33,7 +33,7 @@ var eventsMap = function() {
     setup = false,
     swipe = null,
     searchInput = 'search-input';
-
+    
   var iso = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ"),
     wholeDate = d3.time.format("%b %-d %-I:%M %p"),
     dateFormat = d3.time.format("%b %-d"),
@@ -47,12 +47,15 @@ var eventsMap = function() {
       this.setUpDateSlider();
     },
     setUpMap : function() {
-      map = L.Mapzen.map('map', {
-        scrollWheelZoom : false,
-        scene : L.Mapzen.HouseStyles.Refill
-      });
+      var ts = (new Date()).getTime();
+      L.mapbox.accessToken = 'pk.eyJ1IjoiaHJjLWV2ZW50cyIsImEiOiJjaXNxcnZ5aWgwMmE4MnRtMTBib2JoMWF2In0.yLt9Q6B-IZ2FFQ-KPg3rxg';
+      var layer = L.mapbox.tileLayer('mapbox.light');
+      map = L.mapbox.map('map');
+      map.addLayer(layer);
+
+      L.mapbox.styleLayer('mapbox://styles/hrc-events/cisqrwrb300252xpj5ux74kr5').addTo(map);
       // disable default state to preference user location:
-      // map.fitBounds([[48,-123], [28,-70]]);
+      map.setView([-80,40], 5);
 
       map.on("dragend",function(){
         if (!eventsApp.moveUpdate()) return;
@@ -61,6 +64,19 @@ var eventsMap = function() {
           center = map.getCenter();
         searchedLocation = [center.lat, center.lng];
         eventsApp.doEventSearch(center.lat, center.lng, miles/2, false);
+      });
+      map.on("load", function(event) {
+        console.log("load elapsed="+((new Date()).getTime()-ts));
+      });
+      layer.on("tileload", function(e) {
+        console.log("tileload elapsed="+((new Date()).getTime() - ts));
+        if (document.getElementById("zipcode")) {
+          return;  // already loaded
+        }
+        var script = document.createElement("script");
+        script.src = "js/zipcode.js";
+        script.id = "zipcode";
+        document.getElementsByTagName("head")[0].appendChild(script);
       });
     },
     setUpEventHandlers : function() {
@@ -92,16 +108,24 @@ var eventsMap = function() {
       return $('#move-update:visible').length === 0 || $('#move-update').is(':checked');
     },
     tryForAutoLocation : function() {
-      if (!navigator.geolocation) return;
+      if (!navigator.geolocation) {
+        return;
+      }
       navigator.geolocation.getCurrentPosition(function(position) {
+          eventsApp.showMap(position.coords.latitude, position.coords.longitude, 10);
           searchedLocation = [position.coords.latitude, position.coords.longitude];
           eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius(), true);
       }, function error(msg) {
-          //do nothing
+          eventsApp.showMap(39.833333, -98.583333, 3);
       },
       // if the browser has a cached location thats not more than one hour
       // old, we'll just use that to make the page go faster.
       {maximumAge: 1000 * 3600});
+    },
+    showMap: function(lat, lng, zoom) {
+      // setting the view will fire a moveend event
+      // we don't want to do an event search, with zoom to markers
+      map.setView(L.latLng(lat, lng), zoom);
     },
     setUpDateSlider: function() {
       var thisMonth = new Date();
@@ -563,7 +587,7 @@ var eventsMap = function() {
       d3.json("https://www.hillaryclinton.com/api/events/events?lat="+lat+"&lng="+lng+"&radius="+radius+"&earliestTime="+earliestTime+"&status=confirmed&visibility=public&perPage=500&onepage=1&_=1457303591599", function(error, json){
         allEvents = json.events;
         // uncomment to debug duplicates
-        /*var dupes = []
+        /*var dupes = [] []
         for (var e = 0; e < allEvents.length; e++) {
           if (allEvents[e].locations[0].name == 'Downtown Campaign Office' && allEvents[e].startDate.substring(0, 10) == '2016-08-29') {
             dupes.push(allEvents[e]);
@@ -573,6 +597,7 @@ var eventsMap = function() {
         // bump the radius until an event is found within 150mi
         if (allEvents.length < 1 && radius <= 150) {
           radius = radius*2;
+          console.log('too small - bumping to ' + radius + ' miles');
           eventsApp.doEventSearch(lat, lng, radius, fitBounds);
           return;
         }
