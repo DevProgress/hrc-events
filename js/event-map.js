@@ -334,7 +334,7 @@ var eventsMap = function() {
     },
     doSuggestion : function(query) {
       if (xhr) xhr.abort();
-      xhr = d3.json("https://search.mapzen.com/v1/autocomplete?text="+query+"&boundary.country=USA&api_key=search-Ff4Gs8o", function(err, results) {
+      xhr = d3.json("https://search.mapzen.com/v1/autocomplete?text="+query+"&layers=region,locality,neighbourhood&boundary.country=USA&api_key=search-Ff4Gs8o", function(err, results) {
         var events = results.features;
         // add a zip code result at the top
         if (Number(query) && query.length == 5) {
