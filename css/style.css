@@ -443,7 +443,7 @@ html, body {
 
   #detail {
     max-height: 40%;
-    min-height: 30%;
+    min-height: 20%;
     width: 100%;
     position: absolute;
     bottom: 0;
@@ -457,7 +457,9 @@ html, body {
   #detail .event-list {
     margin: 0;
   }
-
+  .description {
+    visibility: hidden;
+  }
   .swipe {
     overflow: hidden;
     visibility: hidden;
@@ -472,6 +474,9 @@ html, body {
     width: 100%;
     position: relative;
     overflow-y: auto;
+  }
+  .list-event {
+    top: 0px !important
   }
   .list-event .rsvp {
     font-size: 22px;
