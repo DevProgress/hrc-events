@@ -1,3 +1,23 @@
+var welcomeMessage =  '`````````          `````````      ' + '\n' +
+'.ddddddddd-        .shddddddd.     ' + '\n' +
+'.ddddddddd-        .ooshddddd.     ' + '\n' +
+'.ddddddddd-        .ooooshddd.     ' + '\n' +
+'.ddddddddd-        .ooooooshd.     ' + '\n' +
+'.yyyyyyyyy:........:oooooooos-     ' + '\n' +
+'`ooooooooooooooooooooooooooooo/`   ' + '\n' +
+'`ooooooooooooooooooooooooooooooo/` ' + '\n' +
+'`ooooooooooooooooooooooooooooooo/` ' + '\n' +
+'`ooooooooooooooooooooooooooooo/`   ' + '\n' +
+'.yyyyyyyyy:........:oooooooos-     ' + '\n' +
+'.ddddddddd-        .ooooooshd.     ' + '\n' +
+'.ddddddddd-        .ooooshddd.     ' + '\n' +
+'.ddddddddd-        .ooshddddd.     ' + '\n' +
+'.ddddddddd-        .shddddddd.     ' + '\n' +
+ '`````````          `````````     ' + '\n' +
+'Greetings, inquisitive visitor! Come join us at https://devprogress.us/'
+
+console.log(welcomeMessage)
+
 var eventsMap = function() {
   var map,
     markers = [],
