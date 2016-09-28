@@ -20,7 +20,6 @@ console.log(welcomeMessage)
 
 var eventsMap = function() {
   var map,
-    markers = [],
     markersById = {},
     markerGroup = L.markerClusterGroup({
       showCoverageOnHover: false,
