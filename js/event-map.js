@@ -435,7 +435,31 @@ var eventsMap = function() {
         }
         d3.select("#events").attr("class",eventsToShow.length ? "event" : "error");
 
-        eventsToShow.sort(function(a,b){ return iso.parse(a.startDate) - iso.parse(b.startDate); });
+        // sort by location (naive implementation):
+        // from an initial point (random / first in list),
+        // calculate the distance of each other point and sort by distance.
+        try {
+          // each event should have 1 element in `locations`.
+          var startingLocation = eventsToShow[0].locations[0];
+
+          function calcDistance(loc1, loc2) {
+            // coordinates are decimals as strings
+            var lat1 = Number(loc1.latitude);
+            var lat2 = Number(loc2.latitude);
+            var lng1 = Number(loc1.longitude);
+            var lng2 = Number(loc2.longitude);
+            return Math.sqrt( Math.pow(lat2 - lat1, 2) + Math.pow(lng2 - lng1, 2) );
+          }
+
+          // add a distance property to each event
+          eventsToShow.forEach(function(ev) {
+            ev.sortDistance = calcDistance(ev.locations[0], startingLocation);
+          });
+          eventsToShow.sort(function(a, b) { return b.sortDistance - a.sortDistance; })
+        } catch (err) {
+          console.error('Error sorting by distance', err);
+        }
+
         var titles = _.countBy(eventsToShow, function(ev) {
           return ev.name;
         });
