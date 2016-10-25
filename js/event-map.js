@@ -73,6 +73,7 @@ var eventsMap = function() {
       
       // disable default state to preference user location:
       map.setView([-80,40], 5);
+      var hash = new L.Hash(map);
 
       map.on("dragend",function(){
         if (!eventsApp.moveUpdate()) return;
