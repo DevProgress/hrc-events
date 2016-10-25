@@ -43,6 +43,7 @@ var eventsMap = function() {
     popupMarker = null,
     keyIndex = -1,
     xhr,
+    hash,
     searchedLocation,
     currentDate = new Date(),
     earliestTime = encodeURIComponent(currentDate.toISOString());
@@ -72,8 +73,8 @@ var eventsMap = function() {
       var layer = L.mapbox.styleLayer('mapbox://styles/hrc-events/cisqrwrb300252xpj5ux74kr5').addTo(map);
       
       // disable default state to preference user location:
-      map.setView([-80,40], 5);
-      var hash = new L.Hash(map);
+      //map.setView([40.645159, -73.948441], 10);
+      hash = new L.Hash(map);
 
       map.on("dragend",function(){
         if (!eventsApp.moveUpdate()) return;
@@ -126,13 +127,18 @@ var eventsMap = function() {
       return $('#move-update:visible').length === 0 || $('#move-update').is(':checked');
     },
     tryForAutoLocation : function() {
-      if (!navigator.geolocation) {
+      // determine if leaflet hash is present or if the browser can't be located
+      var loadUrl = window.location.href
+      if (!navigator.geolocation || loadUrl.indexOf('#') > -1) {
+        var hashParse = hash.parseHash(loadUrl.split('#')[1])
+        defaultLocation = [hashParse.center.lat, hashParse.center.lng];
+        eventsApp.doEventSearch(defaultLocation[0], defaultLocation[1], eventsApp.getRadius(), true);
         return;
       }
       navigator.geolocation.getCurrentPosition(function(position) {
-          eventsApp.showMap(position.coords.latitude, position.coords.longitude, 10);
-          searchedLocation = [position.coords.latitude, position.coords.longitude];
-          eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius(), true);
+        eventsApp.showMap(position.coords.latitude, position.coords.longitude, 10);
+        searchedLocation = [position.coords.latitude, position.coords.longitude];
+        eventsApp.doEventSearch(searchedLocation[0], searchedLocation[1], eventsApp.getRadius(), true);
       }, function error(msg) {
           eventsApp.showMap(39.833333, -98.583333, 3);
       },
